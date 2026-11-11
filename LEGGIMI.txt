@@ -1,0 +1,35 @@
+ROOF - esperienza 3D
+
+COME APRIRLO
+1. Estrai tutta la cartella dallo ZIP.
+2. Apri index.html con un doppio clic (Chrome, Edge, Safari o Firefox recenti).
+Non servono Live Server, Node o installazioni.
+Serve una connessione internet per video, foto e font, che restano sui siti originali.
+
+COSA SUCCEDE
+- Dopo il loader la città viene costruita in 3D e la camera vola verso il palazzo ROOF.
+- Ogni finestra del palazzo è una pagina o un progetto e mostra il suo video.
+- La home è la finestra con il logo animato. Scorrendo si entra nella stanza
+  (studio, schermo con i progetti selezionati), si esce dal lato del palazzo
+  (progetti) e si sale fino al tetto (servizi e contatti).
+- Cambiando pagina si esce dalla finestra, si percorre la facciata e si entra
+  in un'altra finestra. Lo stesso vale per ogni singolo progetto.
+- "Skip intro" (in basso a destra) salta il volo iniziale.
+
+FILE
+index.html      struttura della pagina
+style.css       stili e animazioni delle pagine
+world.js        città, palazzo, finestre, stanza, tetto e camera (Three.js)
+app.js          pagine, navigazione, scroll e transizioni
+data.js         contenuti del sito (testi, immagini, video) e logo per l'insegna
+translations.js testi italiani (selettore IT/EN nell'header, scelta salvata nel browser)
+vendor/         GSAP 3.15, Three.js r160, Lenis 1.1.14
+
+NOTE TECNICHE
+- I video non possono essere usati come texture WebGL (il server non invia
+  intestazioni CORS): sono veri elementi <video> posizionati in 3D sotto il
+  canvas e visti attraverso "fori" nelle finestre.
+- Per restare fluido il sito riproduce solo i video delle finestre più
+  visibili e abbassa da solo la risoluzione 3D se il computer rallenta.
+- Senza WebGL il sito mostra le pagine con il video come sfondo.
+- Con "riduci animazioni" attivo nel sistema l'intro e i voli sono disattivati.

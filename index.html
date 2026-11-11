@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ROOF — digital content creation, live visuals and 3D environments. An independent redesign proposal.">
+<title>ROOF — Beyond the screen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="is-booting">
+
+<!-- videos live here, in 3D, underneath the WebGL canvas -->
+<div id="css3d" aria-hidden="true"><div id="css3d-cam"></div></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<video id="fallback-bg" muted loop playsinline aria-hidden="true"></video>
+<div id="scrim" aria-hidden="true"></div>
+
+<a class="skip" href="#main" data-t="Skip to content">Skip to content</a>
+
+<header>
+  <a href="#/" class="logo" aria-label="ROOF home"><img src="assets/roof-logo-yellow.png" alt="ROOF logo"></a>
+  <nav aria-label="Main navigation">
+    <a href="#/" data-t="Home">Home</a>
+    <a href="#/works" data-t="What we create">What we create</a>
+    <a href="#/services" data-t="Services">Services</a>
+    <a href="#/about" data-t="About">About</a>
+    <a class="contact-link" href="#/contacts"><span data-t="Let's talk">Let's talk</span> <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
+  </nav>
+  <div class="language-switch" role="group" aria-label="Language / Lingua">
+    <button type="button" data-language="it" lang="it" aria-label="Italiano" aria-pressed="false">IT</button><span aria-hidden="true">/</span><button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
+  </div>
+  <button id="menu" aria-expanded="false" aria-label="Toggle navigation"><span></span><span></span></button>
+</header>
+
+<main id="main" tabindex="-1"><div id="page"></div></main>
+
+<div id="progress" aria-hidden="true"></div>
+<div id="hud" aria-hidden="true"><span class="hud-k"></span><b class="hud-name"></b><i class="hud-floor"></i></div>
+<button id="skip-intro" type="button" data-t="Skip intro">Skip intro</button>
+<div id="shutter" aria-hidden="true"></div>
+<div id="cursor" aria-hidden="true"><span></span></div>
+
+<div id="boot" role="status" aria-live="polite">
+  <img class="boot-logo" src="assets/roof-logo-yellow.png" alt="ROOF">
+  <div class="boot-row"><span class="boot-label" data-t="LOADING EXPERIENCE">LOADING EXPERIENCE</span><span class="boot-num">000</span></div>
+  <div class="boot-track"><i></i></div>
+</div>
+
+<dialog id="lightbox"><button aria-label="Close image" class="close" data-t="Close ×">Close ×</button><img alt="Project image enlarged"></dialog>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="translations.js"></script>
+<script src="data.js"></script>
+<script src="world.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
