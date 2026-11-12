@@ -255,7 +255,7 @@ function projectHTML(p) {
   const tour = id === 'bosch' ? `<a class="text-link" href="${esc((p.links.find(l => l.text === 'Click Here') || {}).url || 'https://www.roofvideodesign.com/project/bosch/')}" target="_blank" rel="noopener">${E('Visit the virtual tour')} ${ARROW}</a>` : '';
   return heroWin(`${pad(n + 1)} / ${pad(projects.length)} — ${E(category(p))}`, split(T(names(p))), E(lines[1]), `<a class="back" href="#/works">${E('← All projects')}</a>`) +
     `<section class="sec story"><div data-r><span class="eyebrow">${E('PROJECT NOTES')}</span><h2>${E(lead)}</h2></div><div class="story-body">${body.map(x => `<p class="body-copy" data-r>${E(x)}</p>`).join('')}${tour}${credits.length ? `<div class="credits" data-r><span class="eyebrow">CREDITS</span>${credits.map(x => `<p>${E(x)}</p>`).join('')}</div>` : ''}</div></section>
-<section class="sec"><p class="eyebrow sec-k" data-r>${E('SELECTED FRAMES')}</p><div class="gallery">${imgs(p).map((src, i) => `<button data-r="${i % 2 ? 'right' : 'left'}" data-image="${esc(cdn(src, 2000))}" aria-label="${E(names(p))} ${i + 1}"><img src="${esc(cdn(src, 1100))}" alt="${E(names(p))} ${i + 1}" loading="lazy"></button>`).join('')}</div>
+<section class="sec"><p class="eyebrow sec-k" data-r>${E('SELECTED FRAMES')}</p><div class="gallery">${imgs(p).map((src, i) => `<button data-r="${i % 2 ? 'right' : 'left'}" data-image="${esc(cdn(src, 2000))}" aria-label="${E(names(p))} ${i + 1}"><img src="${esc(cdn(src, 1100))}" alt="${E(names(p))} ${i + 1}" decoding="async"></button>`).join('')}</div>
 ${vs.length > 1 || yt.length ? `<p class="eyebrow sec-k" data-r>${E('IN MOTION')}</p>` : ''}<div class="project-videos">${vs.slice(1).map(src => `<div class="vframe" data-scrub="tilt"><video muted loop playsinline preload="none" data-auto="${esc(src)}"></video></div>`).join('')}${yt.map(src => { const id = (src.match(/embed\/([\w-]{6,})/) || [])[1]; return id ? `<a class="embed-button yt-link" data-r href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener"><span class="yt-inner">${E('Play original YouTube video')} ${ARROW}<br><small>${E('Opens the video on YouTube in a new tab.')}</small></span></a>` : ''; }).join('')}</div></section>
 <a class="next" href="${url(next)}"><span class="eyebrow">${E('NEXT PROJECT')}</span><h2>${split(T(names(next)))}</h2><span class="project-button">${E('Explore')} <span>${ARROW}</span></span><img src="${esc(cdn(poster(next), 1200))}" alt="" loading="lazy"></a>` + footer();
 }
@@ -277,7 +277,7 @@ let current = routeOf(), busy = true, heroIn = null, hint = null, scrubs = [];
 const cur = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2, el: $('#cursor') };
 const progress = $('#progress'), scrim = $('#scrim');
 function tick(t) {
-  lenis && lenis.raf(t);
+  lenis && lenis.raf(t); VS.tick();
   if (fine) { cur.x += (cur.tx - cur.x) * .22; cur.y += (cur.ty - cur.y) * .22; cur.el.style.transform = `translate3d(${cur.x}px,${cur.y}px,0)`; }
   drawAmb();
   homeFitFrame();
@@ -322,6 +322,13 @@ function chrome() {
 const VS = (() => {
   const LOW = matchMedia('(pointer:coarse)').matches || Math.min(innerWidth, innerHeight) < 620;
   let token = 0;
+  const stage = document.createElement('div'); stage.setAttribute('aria-hidden', 'true');
+  stage.style.cssText = 'position:fixed;left:0;bottom:0;width:4px;height:4px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1';
+  document.body.append(stage);
+  const parked = new Set();
+  const hiddenBox = el => { if (!el) return false; if (getComputedStyle(el).display === 'none') return true; const r = el.getBoundingClientRect(); return r.width === 0 || r.height === 0; };
+  function park(v) { if (v.parentElement === stage || !v.parentElement) return; v._home = v.parentElement; v._next = v.nextSibling; stage.append(v); parked.add(v); }
+  function unpark(v) { if (v.parentElement !== stage || !v._home) return; v._home.insertBefore(v, v._next && v._next.parentNode === v._home ? v._next : null); parked.delete(v); }
   const full = v => { if (!v) return true; if (v.error) return true; const d = v.duration, b = v.buffered; return d > 0 && b.length > 0 && b.end(b.length - 1) >= d - .3; };
   const srcOf = v => v._src || v.dataset.src || v.dataset.auto || v.getAttribute('src');
   const slotOf = v => v._slot || null;
@@ -332,9 +339,11 @@ const VS = (() => {
     // a short muted start makes phones (iOS) really buffer; whoever owns the clip pauses it again if it is not on screen
     // showreel films keep playing hidden while they warm up: phones only keep buffering a clip that is playing
     if (films.includes(v)) v._warming = true;
+    if (hiddenBox(v.parentElement) || hiddenBox(v.parentElement && v.parentElement.parentElement)) park(v);
     if (v.paused) v.play().catch(() => {});
   }
   function stop(v) {
+    if (v && v.parentElement === stage) { unpark(v); v.pause(); }
     if (!v || full(v) || !v.getAttribute('src')) return;
     if (!v.paused && v.getBoundingClientRect().width > 0 && v.closest('.win3d') && v.closest('.win3d').style.display === 'block') return;   // never cut a clip that is on screen
     v._src = srcOf(v); v.pause(); v.removeAttribute('src'); v.load();
@@ -344,7 +353,7 @@ const VS = (() => {
   const waitFull = (v, tok, max, enough) => new Promise(res => { const t0 = performance.now(); const c = () => { if (tok !== token || (enough ? playable(v) : full(v)) || performance.now() - t0 > max) res(); else setTimeout(c, 150); }; c(); });
   async function run(list, conc, tok, max = 15000, enough = false) {
     let i = 0;
-    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || (enough ? playable(v) : full(v))) continue; start(v); await waitFull(v, tok, max, enough); if (v._warming) { v._warming = false; if (current.name !== "home" || !filmsNear) v.pause(); } } };
+    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || (enough ? playable(v) : full(v))) continue; start(v); await waitFull(v, tok, max, enough); if (v._warming) { v._warming = false; if (current.name !== "home" || !filmsNear) v.pause(); } if (v.parentElement === stage) { unpark(v); v.pause(); } } };
     await Promise.all(Array.from({ length: conc }, worker));
   }
   // the tower: current window first, then the nearest ones
@@ -363,6 +372,8 @@ const VS = (() => {
   }
   const rest = r => r.name === 'home' ? [] : films.slice();
   return {
+    // every frame: a parked clip whose window or screen comes into view returns home at once (still playing)
+    tick() { if (!parked.size) return; for (const v of parked) { const box = v._home; if (box && !hiddenBox(box) && !hiddenBox(box.parentElement)) unpark(v); } },
     // loader + opening flight
     async boot(r) {
       const tok = ++token, t = tower(r.win);
