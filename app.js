@@ -538,14 +538,22 @@ function enterRoom() {
   chrome();
   if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); } VS.boot(current);
   const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
-  const creep = gsap.to(c, { v: 88, duration: 4, ease: 'power1.out', onUpdate: setN });
-  const ready = Promise.race([
-    Promise.all([document.fonts ? document.fonts.ready : 0, new Promise(r => document.readyState === 'complete' ? r() : addEventListener('load', r)), new Promise(r => setTimeout(r, reduce ? 0 : 1100))]),
-    new Promise(r => setTimeout(r, 6000)),
-  ]);
+  // The loader opens once at least a third of the window clips can play (and the fonts are in), and never lasts more than 3 s.
+  // The bar follows the later of "time passed" and "clips ready": both only grow, so it always moves forward, smoothly.
+  const MAXT = reduce ? 0 : 3000, MINT = reduce ? 0 : 1100, t0 = performance.now();
+  const winVids = () => defs.filter(d => d.video).map(d => W.ok && W.slot(d.id) && W.slot(d.id).videoEl).filter(Boolean);
+  let fontsOk = !document.fonts; if (document.fonts) document.fonts.ready.then(() => { fontsOk = true; });
+  const ready = new Promise(res => {
+    const step = () => {
+      const el = performance.now() - t0, vs = winVids(), need = Math.max(1, Math.ceil(vs.length / 3)), n = vs.filter(v => v.readyState >= 3).length;
+      const target = Math.min(94, Math.max(el / Math.max(MAXT, 1) * 94, vs.length ? Math.min(n / need, 1) * 94 : 94));
+      c.v += (Math.max(target, c.v) - c.v) * .1; setN();
+      if (el >= MAXT || (el >= MINT && fontsOk && n >= need)) res(); else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
   ready.then(() => {
-    creep.kill();
-    gsap.to(c, { v: 100, duration: reduce ? 0 : .5, ease: 'power2.out', onUpdate: setN, onComplete() {
+    gsap.to(c, { v: 100, duration: reduce ? 0 : .45, ease: 'power1.out', onUpdate: setN, onComplete() {
       $('.boot-label').textContent = T('READY TO EXPERIENCE');
       const done = () => { document.body.classList.remove('is-booting', 'is-intro'); skip.remove(); mount(current); restoreScroll(); if (pending || routeOf().key !== current.key) { pending = false; go(); } };
       if (!W.ok || reduce) { W.ok && W.intro(current.win, true); gsap.to(bootEl, { opacity: 0, duration: .4, onComplete() { bootEl.remove(); } }); done(); return; }
