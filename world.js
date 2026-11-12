@@ -323,7 +323,7 @@ let drum; const faceObjs = [], drumParts = [], faceItems = [];
   // art frame on the left wall
   strip(.06, .08, 20, -hw + .05, 5.6, -12.5, 0xf7eb62); strip(.06, .08, 20, -hw + .05, -3.6, -12.5, 0x55522a);
   const colM = roomMat(0x303136, 0, roomLights, 110);
-  [[-11, -9], [11, -9], [-11, -33], [11, -33]].forEach(p => { const c = new THREE.Mesh(new THREE.BoxGeometry(1.2, h, 1.2), colM); c.position.set(p[0], cy, p[1]); room.add(c); });
+  [[11, -9], [-11, -33], [11, -33]].forEach(p => { const c = new THREE.Mesh(new THREE.BoxGeometry(1.2, h, 1.2), colM); c.position.set(p[0], cy, p[1]); room.add(c); });
   // the drum: a five-sided prism of screens (each face is a hole onto a DOM film) that rolls as you scroll
   drum = new THREE.Group(); drum.position.set(0, DRUM.y, DRUM.z); room.add(drum);
   const holeM = new THREE.MeshBasicMaterial({ color: 0, transparent: true, opacity: 0, blending: THREE.NoBlending, depthWrite: false });
@@ -457,9 +457,9 @@ function scheduleVideos() {
 /* ---------- poses ---------- */
 let cur = null, open = 0, flight = null, flightIds = [], drumPull = 0;
 const tanH = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-// landscape: the window covers the screen. portrait: the whole window stays in view, framed by the façade.
-const fillDist = (w, h) => { const a = h / 2 / tanH(), b = w / 2 / (tanH() * camera.aspect); return camera.aspect < 1 ? Math.max(a, b) / 1.12 : Math.min(a, b) / 1.035; };
-function fillPose(s) { return { pos: new V3(s.center.x, s.center.y, FZ + fillDist(WIN_W, WIN_H)), tgt: new V3(s.center.x, s.center.y, FZ - 12) }; }
+// the window covers the whole screen, on phones too: you are already "in" the video
+const fillDist = (w, h, id) => { const a = h / 2 / tanH(), b = w / 2 / (tanH() * camera.aspect); return Math.min(a, b) / 1.035; };
+function fillPose(s) { return { pos: new V3(s.center.x, s.center.y, FZ + fillDist(WIN_W, WIN_H, s.id)), tgt: new V3(s.center.x, s.center.y, FZ - 12) }; }
 const ss = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
 const sm = t => t * t * t * (t * (t * 6 - 15) + 10);
 let homeKeys = null;
@@ -485,7 +485,7 @@ function buildHomeKeys() {
   if (camera.aspect < 1) {   // portrait: the sign sits above the text instead of beside it
     homeKeys[11] = [.925, new V3(4, 134, 54), new V3(0, 124, -6)];
     homeKeys[12] = [.955, new V3(3, 134.4, 52), new V3(0, 124, -6)];
-    homeKeys[13] = [1, new V3(0, 150, 96), new V3(0, 118, 0)];
+    homeKeys[13] = [1, new V3(0, 147, 92), new V3(0, 129, 0)];   // from above the roof like before, with a gentle tilt so the sign and antenna stay upright
   }
 }
 function homePose(p) {
@@ -498,6 +498,7 @@ function homePose(p) {
 /* ---------- public API ---------- */
 W.init = (defs) => { defs.forEach(makeSlot); resize(); requestAnimationFrame(frame); setInterval(scheduleVideos, 350); };
 W.slot = id => byId[id];
+W.homeFillDist = () => fillDist(WIN_W, WIN_H, 'home');
 W.preload = id => { const s = byId[id]; if (s && s.videoEl && !s.started) { s.started = true; s.videoEl.preload = 'auto'; s.videoEl.src = s.video; s.videoEl.play().catch(() => {}); } };
 W.floor = id => { const s = byId[id]; return s ? 12 + s.r * 2 : 0; };
 W.attachFaces = (els) => els.forEach((el, i) => { css.cam.appendChild(el); const it = { el, obj: faceObjs[i], scale: DRUM.w / 1280, visible: false, shown: false, reach: 10 }; faceItems.push(it); css.items.push(it); });
@@ -515,18 +516,18 @@ W.setActive = (id) => {
 };
 W.setOpen = (o) => { open = o; if (cur) cur.poster.visible = o < .002; };
 W.highlight = (id, v) => { const s = byId[id]; if (s) gsap.to(s, { hi: v, duration: .5 }); };
-W.toFill = (id) => { const f = fillPose(byId[id]); rig.pos.copy(f.pos); rig.tgt.copy(f.tgt); W.setOpen(0); W.parallax = .12; };
+W.toFill = (id) => { const f = fillPose(byId[id]); rig.pos.copy(f.pos); rig.tgt.copy(f.tgt); W.setOpen(0); W.parallax = 0; };
 W.setHome = (p) => {
   homePose(p); W.setOpen(ss(.008, .036, p));
   if (p > .3 && p < .64) rig.pos.z += drumPull * 6.5;
-  W.parallax = p < .01 ? .12 : p < .66 ? .7 : 1.6;
+  W.parallax = p < .01 ? 0 : p < .66 ? .7 : 1.6;
 };
 W.setPage = (s, quickOpen) => {
   if (!cur) return; const f = fillPose(cur), xa = cur.center.x, e = sm(Math.min(s, 1)), s2 = Math.max(s - 1, 0), k = Math.min(s2 / 2, 1);
   rig.pos.set(f.pos.x + (xa * .45 - f.pos.x) * e - xa * .45 * k + Math.sin(s2 * .45) * 3.2 * k,
     cur.center.y + Math.sin(s2 * .6) * .5 * k, f.pos.z + (FZ - 6 - f.pos.z) * e - Math.min(s2 * 2.4, 22));
   rig.tgt.set(xa + (rig.pos.x * .6 - xa) * e + Math.sin(s2 * .3) * 7 * k, cur.center.y + .4 * e, FZ - 12 - 30 * e);
-  W.setOpen(quickOpen ? ss(.004, .05, s) : ss(.08, .5, s)); W.parallax = s < .05 ? .12 : .7;
+  W.setOpen(quickOpen ? ss(.004, .05, s) : ss(.08, .5, s)); W.parallax = s < .05 ? 0 : .7;
 };
 W.fly = (from, to, opt = {}) => {
   if (flight) flight.kill();
@@ -546,6 +547,8 @@ W.fly = (from, to, opt = {}) => {
     curve.getPoint(o.u, rig.pos); rig.tgt.lerpVectors(ta, tb, ss(.18, .82, o.u)); rig.fov = Math.sin(o.u * Math.PI) * 7;
     rig.roll = Math.sin(o.u * Math.PI * 2) * -Math.sign(side) * .05;
   } });
+  // the mouse sway fades out before the landing: once the window fills the screen nothing drifts any more
+  flight.to(W, { parallax: 0, duration: .9, ease: "power2.inOut" }, Math.max(0, (opt.duration || 2.5) - 1.5));
   return flight;
 };
 W.intro = (to, quick) => {
@@ -562,6 +565,7 @@ W.intro = (to, quick) => {
     const at = 3.6 + ((i * 7) % slots.length) * .11;
     tl.to(s, { keyframes: [{ on: .7, duration: .06 }, { on: .15, duration: .08 }, { on: 1, duration: .25 }] }, at);
   });
+  tl.to(W, { parallax: 0, duration: 1.4, ease: "power2.inOut" }, 5.4);   // sway gone before the landing: the video is perfectly still when the camera stops
   tl.call(() => W.highlight(to, 1), null, 4.6).call(() => W.highlight(to, 0), null, 7.2);
   return tl;
 };
