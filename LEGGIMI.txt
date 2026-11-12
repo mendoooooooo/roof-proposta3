@@ -110,3 +110,7 @@ REVISIONE v6.2
 REVISIONE v6.3
 - Immagini dei progetti: tolto il caricamento "pigro" nella galleria (Safari su iPhone non carica le immagini pigre dentro un impaginazione a colonne): ora si vedono sempre.
 - Video su telefono: iPhone non scarica e non avvia un video il cui riquadro e nascosto (le finestre e gli schermi 3D lo sono finche la camera non li inquadra). Mentre un video si prepara e il suo posto non e in vista, viene tenuto in un punto minuscolo e invisibile ma "visibile" per il telefono; appena la sua finestra o il suo schermo entrano in vista torna al suo posto, gia in riproduzione.
+
+REVISIONE v6.4
+- Services: volo di durata normale e nessuna attesa a fine volo: la pagina e subito scorrevole. I video dei servizi si scaricano in sottofondo ma non vengono riprodotti di nascosto (restano fermi finche non si apre la voce), cosi lo scroll resta fluido.
+- Pagine con video pesanti (CAMST circa 11 MB, Let s talk circa 12 MB): entrando nella pagina il video della sua finestra si scarica per primo e da solo, con tutta la banda, finche puo partire; poi gli altri video della pagina. Un video che e lo stesso file della finestra (la copia sotto il testo in Let s talk) aspetta che quello della finestra sia completo e arriva dalla cache, invece di scaricare due volte in parallelo lo stesso file.
