@@ -138,7 +138,7 @@ function setupHome() {
   film = -1;
   home = { panels: $$('.panel').map(el => { const [a, b] = el.dataset.range.split(',').map(Number); return { el, a, b, fx: el.dataset.fx, vis: null }; }), strip: $('.strip'), cards: $$('.strip .card'), bars: $$('[data-film]'), dial: $('.dial-ring') };
   home.bars.forEach((b, i) => b.onclick = () => goto(STAGE[0] + (STAGE[1] - STAGE[0]) * (i + .25) / 5));
-  measureHome(); setFilm(0, false); warmFilms(); ambBand();
+  measureHome(); setFilm(0, false); ambBand();
   home.panels.forEach(P => { P.dim = P.el.classList.contains('p-love') || P.el.classList.contains('p-studio') || P.el.classList.contains('p-services') ? .48 : P.el.classList.contains('p-end') ? 0 : P.el.classList.contains('p-cards') ? .3 : 0; });
 }
 function measureHome() { if (!home) return; home.cards.forEach(c => { c._x = c.offsetLeft + c.offsetWidth / 2; }); home.stripW = home.strip.scrollWidth; }
@@ -207,7 +207,6 @@ function servicesHTML() {
 function setupServices() {
   const sv = $$('.srv-media video'); sv.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
   const loadSrv = i => { const v = sv[i]; if (v && !v.src) { v.preload = 'auto'; v.src = v.dataset.src; v.load(); } };
-  loadSrv(0); loadSrv(1); for (let k = 2; k < sv.length; k++) setTimeout(() => loadSrv(k), 900 * (k - 1));
   $$('.srv-head').forEach(b => b.onclick = () => {
     const a = b.parentElement, opening = !a.classList.contains('open');
     $$('.srv.open').forEach(x => { if (x !== a) { x.classList.remove('open'); x.firstElementChild.setAttribute('aria-expanded', 'false'); const v = $('video', x); v && v.pause(); } });
@@ -234,8 +233,6 @@ let reel = null;
 const narrow = () => matchMedia('(max-width:860px)').matches;
 function setupContact() {
   if (!$('.cvideo')) { reel = null; const v = $('.cvideo-inline video'), bg = W.ok && W.slot('contacts') && W.slot('contacts').videoEl;
-    // the copy under the text loads right after the background clip (same file: it then comes from the browser cache)
-    if (v) { const go = () => { if (!v.src) { v.preload = 'auto'; v.src = v.dataset.auto; } }; if (!bg || bg.readyState >= 4) go(); else { bg.addEventListener('canplaythrough', go, { once: true }); setTimeout(go, 4000); } }
     return; }
   const el = $('.cvideo'), v = $('video', el), slot = $('.reel-slot'), src = W.ok && W.slot('contacts');
   reel = { el, slot, r0: W.ok ? W.fillRect() : { x: 0, y: 0, w: innerWidth, h: innerHeight }, last: scrollY(), vel: 0 };
@@ -316,6 +313,75 @@ function chrome() {
   document.title = (name ? name + ' — ' : '') + base;
 }
 // defer: build the page invisibly (before a flight, so decoding and layout never land mid-animation); reveal() shows it
+/* ---------- video download director: one queue for the whole site, strict priorities ----------
+   1. loader + opening flight: the tower's window clips (the current window — ROOF on the home page — first and alone)
+   2. once enough of the tower is in, the home page clips join
+   3. inside a page: unfinished tower downloads are stopped; the page's own window clip and the page's clips load fully
+   4. then the tower resumes, then the rest of the site (the showreel films when not on the home page)
+   Every page change starts again from step 3. */
+const VS = (() => {
+  const LOW = matchMedia('(pointer:coarse)').matches || Math.min(innerWidth, innerHeight) < 620;
+  let token = 0;
+  const full = v => { if (!v) return true; if (v.error) return true; const d = v.duration, b = v.buffered; return d > 0 && b.length > 0 && b.end(b.length - 1) >= d - .3; };
+  const srcOf = v => v._src || v.dataset.src || v.dataset.auto || v.getAttribute('src');
+  const slotOf = v => v._slot || null;
+  function start(v) {
+    if (!v) return; const s = srcOf(v); v.preload = 'auto';
+    if (!v.getAttribute('src') && s) { v.src = s; }
+    const sl = slotOf(v); if (sl) sl.started = true;
+    // a short muted start makes phones (iOS) really buffer; whoever owns the clip pauses it again if it is not on screen
+    if (v.paused) v.play().catch(() => {});
+  }
+  function stop(v) {
+    if (!v || full(v) || !v.getAttribute('src')) return;
+    if (!v.paused && v.getBoundingClientRect().width > 0 && v.closest('.win3d') && v.closest('.win3d').style.display === 'block') return;   // never cut a clip that is on screen
+    v._src = srcOf(v); v.pause(); v.removeAttribute('src'); v.load();
+    const sl = slotOf(v); if (sl) sl.started = false;
+  }
+  const waitFull = (v, tok, max) => new Promise(res => { const t0 = performance.now(); const c = () => { if (tok !== token || full(v) || performance.now() - t0 > max) res(); else setTimeout(c, 200); }; c(); });
+  async function run(list, conc, tok, max = 15000) {
+    let i = 0;
+    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || full(v)) continue; start(v); await waitFull(v, tok, max); } };
+    await Promise.all(Array.from({ length: conc }, worker));
+  }
+  // the tower: current window first, then the nearest ones
+  function tower(winId) {
+    if (!W.ok) return [];
+    const first = W.slot(winId), all = defs.map(d => W.slot(d.id)).filter(s => s && s.videoEl);
+    all.forEach(s => { s.videoEl._slot = s; s.videoEl._src = s.video; });
+    return all.sort((a, b) => (b === first) - (a === first) || (first ? a.center.distanceTo(first.center) - b.center.distanceTo(first.center) : 0)).map(s => s.videoEl);
+  }
+  function pageClips(r) {
+    if (r.name === 'home') return films.slice();
+    if (r.name === 'services') return $$('.srv-media video');
+    if (r.name === 'contacts') return $$('.cvideo-inline video');
+    if (r.name === 'project') return $$('.vframe video');
+    return [];
+  }
+  const rest = r => r.name === 'home' ? [] : films.slice();
+  return {
+    // loader + opening flight
+    async boot(r) {
+      const tok = ++token, t = tower(r.win);
+      await run(t.slice(0, 1), 1, tok, 20000);
+      if (tok !== token) return;
+      const others = t.slice(1);
+      // "enough" of the tower: about two thirds ready → the home clips join (one at a time)
+      const watch = setInterval(() => { if (tok !== token) return clearInterval(watch); if (others.filter(full).length >= others.length * .66) { clearInterval(watch); run(pageClips(r), 1, tok); } }, 300);
+      await run(others, LOW ? 2 : 3, tok);
+    },
+    // inside a page
+    async enter(r) {
+      const tok = ++token, t = tower(r.win), mine = [t[0]].concat(pageClips(r));
+      t.slice(1).forEach(stop); rest(r).forEach(v => { if (!mine.includes(v)) stop(v); });
+      await run(mine, 2, tok);
+      if (tok !== token) return;
+      await run(t.slice(1), LOW ? 2 : 3, tok);
+      if (tok !== token) return;
+      await run(rest(r), 1, tok);
+    },
+  };
+})();
 function mount(r, keep, defer) {
   const y = keep ? scrollY() : 0;
   io.disconnect(); vio.disconnect(); home = null; scrubs = []; heroIn = null; reel = null;
@@ -326,7 +392,7 @@ function mount(r, keep, defer) {
   heroIn = $('.hero-win-inner'); hint = $('.scroll-hint');
   $$('[data-r]').forEach(el => io.observe(el)); $$('[data-auto]').forEach(v => vio.observe(v));
   scrubs = $$('[data-scrub]').map(el => ({ el, kind: el.dataset.scrub, words: $$('.word', el), n: -1 }));
-  scrim.style.opacity = 0; chrome();
+  scrim.style.opacity = 0; chrome(); VS.enter(r);
   if (!W.ok) { const fb = $('#fallback-bg'), d = defs.find(x => x.id === r.win); if (d && d.video && fb.dataset.v !== d.video) { fb.dataset.v = d.video; fb.src = d.video; fb.play().catch(() => {}); } }
   if (lenis) { lenis.resize(); lenis.scrollTo(y, { immediate: true, force: true }); } else scrollTo(0, y);
   if (defer) { page.style.opacity = 0; page.style.pointerEvents = 'none'; return; }
@@ -470,7 +536,7 @@ function enterRoom() {
 (function boot() {
   const bootEl = $('#boot'), num = $('.boot-num'), bar = $('.boot-track i'), skip = $('#skip-intro'), c = { v: 0 };
   chrome();
-  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); windowsWarm = Promise.race([(W.warm && W.warm(current.win)) || Promise.resolve(), new Promise(r => setTimeout(r, 15000))]); } if (current.name === 'home') warmFilms();
+  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); } VS.boot(current);
   const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
   const creep = gsap.to(c, { v: 88, duration: 4, ease: 'power1.out', onUpdate: setN });
   const ready = Promise.race([
