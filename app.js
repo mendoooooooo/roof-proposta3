@@ -111,8 +111,22 @@ const films = faceEls.map(d => d.firstElementChild);
 films.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
 // the five showreel films download as soon as the home page is up: two at once, then one after another
 let filmsWarm = false;
-function warmFilms() { if (filmsWarm) return; filmsWarm = true; const load = i => { const v = films[i]; if (v && !v.src) { v.preload = 'auto'; v.src = v.dataset.src; v.load(); } }; load(0); load(1); for (let k = 2; k < films.length; k++) setTimeout(() => load(k), 1200 * (k - 1)); }
+let windowsWarm = Promise.resolve();
+function warmFilms() {
+  if (filmsWarm) return; filmsWarm = true; windowsWarm.then(startFilms);
+}
+function startFilms() {
+  let i = 0, live = 0;
+  // two at a time, in showreel order; each one is briefly started (muted) so phones really buffer it, then waits for its turn on the screen
+  const pump = () => { while (live < 2 && i < films.length) { const v = films[i++]; live++; let over = false; const next = () => { if (over) return; over = true; live--; pump(); };
+    v.addEventListener('canplaythrough', next, { once: true }); v.addEventListener('error', next, { once: true }); setTimeout(next, 5000);
+    if (!v.src) { v.preload = 'auto'; v.src = v.dataset.src; }
+    v.play().then(() => { if (!filmsNear) v.pause(); }).catch(() => {}); } };
+  pump();
+}
+let filmsNear = false;
 function setFilm(i, playing, also = -1) {
+  filmsNear = playing;
   films.forEach((v, j) => { if ((j === i || j === also) && playing) { if (!v.src) v.src = v.dataset.src; if (v.paused) v.play().catch(() => {}); } else if (!v.paused) v.pause(); });
   if (i === film || i < 0) return; film = i; const p = selected[i];
   $('#filmtitle').textContent = T(names(p)); $('#filmtype').textContent = T(category(p)); $('#filmsub').textContent = T(clean(p)[1]);
@@ -456,7 +470,7 @@ function enterRoom() {
 (function boot() {
   const bootEl = $('#boot'), num = $('.boot-num'), bar = $('.boot-track i'), skip = $('#skip-intro'), c = { v: 0 };
   chrome();
-  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); W.warm && W.warm(current.win); }
+  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); windowsWarm = Promise.race([(W.warm && W.warm(current.win)) || Promise.resolve(), new Promise(r => setTimeout(r, 15000))]); } if (current.name === 'home') warmFilms();
   const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
   const creep = gsap.to(c, { v: 88, duration: 4, ease: 'power1.out', onUpdate: setN });
   const ready = Promise.race([
