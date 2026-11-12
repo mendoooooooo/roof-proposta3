@@ -9,6 +9,10 @@ const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const ease = t => t * t * (3 - 2 * t);
 const page = $('#page');
 
+/* ---------- clips that open on black frames: skip their first instant ---------- */
+const SKIP = { 'Solana-Breakpoint21-Roof_small-short.mp4': 1.2 };
+document.addEventListener('loadedmetadata', e => { const v = e.target; if (!v || v.tagName !== 'VIDEO' || v._skip) return; const k = Object.keys(SKIP).find(n => (v.currentSrc || v.src || '').includes(n)); if (!k) return; v._skip = true; const to = SKIP[k]; v.loop = false; if (v.currentTime < to) v.currentTime = to; v.addEventListener('ended', () => { v.currentTime = to; v.play().catch(() => {}); }); }, true);
+
 /* ---------- language ---------- */
 Object.assign(IT, {
   'Home': 'Home', 'Skip intro': 'Salta intro', 'SCROLL': 'SCORRI', 'NOW ENTERING': 'STAI ENTRANDO IN', 'FLOOR': 'PIANO',
@@ -77,7 +81,7 @@ function homeHTML() {
   const sv = services().slice(0, 4);
   return `<div class="home"><div class="home-space"></div><div class="pin">
 <section class="panel p-hero" data-range="0,.028" data-fx="hero"><div class="hero-cap"><span class="eyebrow pill">${E('DIGITAL CONTENT. LIVE EXPERIENCES.')}</span><button class="round-link pill" data-goto=".09">${E('ENTER THE BUILDING')} <i>↓</i></button></div></section>
-<section class="panel p-love" data-range=".05,.118" data-fx="zoom"><div class="hero-meta eyebrow rise"><span>${E('INDEPENDENT DIGITAL CONTENT STUDIO')}</span><span class="status">${E('BOLOGNA, ITALY — WORLDWIDE')}</span></div><h1 class="rise" style="--d:1">${E('We love')}<br>${E('what we')} <em>${E('do.')}</em></h1><p class="rise" style="--d:2">${E('Video content. 3D environments. Live experiences.')}<br>${E('We bring imagination to the stage.')}</p></section>
+<section class="panel p-love" data-range=".05,.118" data-fx="zoom"><div class="hero-meta eyebrow rise"><span>${E('INDEPENDENT DIGITAL CONTENT STUDIO')}</span><span class="status">${E('BOLOGNA, ITALY — WORLDWIDE')}</span></div><h1 class="rise" style="--d:1">${E('We love')}<br><em>${E('what we')} ${E('do.')}</em></h1><p class="rise" style="--d:2">${E('Video content. 3D environments. Live experiences.')}<br>${E('We bring imagination to the stage.')}</p></section>
 <section class="panel p-studio" data-range=".14,.225" data-fx="left"><span class="eyebrow rise">${E('01 / THE STUDIO')}</span><h2 class="rise" style="--d:1">${E('Digital content.')}<br>${E('Physical impact.')}<br><em>${E('Experiences that stay.')}</em></h2><p class="body-copy rise" style="--d:2">${E(clean(D[2])[0])} ${E(clean(D[2])[1])}</p><a class="text-link rise" style="--d:3" href="#/about">${E('Meet ROOF')} ${ARROW}</a></section>
 <section class="panel p-stage" data-range=".30,.615" data-fx="stage"><div class="stage-top"><span class="tag">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span></div><div class="stage-caption"><div><span class="tag tag-mobile">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span><span class="eyebrow" id="filmtype"></span><h2 id="filmtitle"></h2><p id="filmsub"></p></div><a class="project-button" id="filmlink">${E('Explore project')} <span>${ARROW}</span></a></div><div class="reel"><div class="timeline">${selected.map((p, i) => `<button data-film="${i}"><b>${pad(i + 1)}</b><span>${E(names(p))}</span></button>`).join('')}</div></div></section>
 <section class="panel p-cards" data-range=".69,.868" data-fx="up"><div class="section-head"><h2>${E('Beyond the screen.')}</h2><a href="#/works" class="text-link">${E('All projects')} ${ARROW}</a></div><div class="strip">${[projects[3], projects[4], projects[5], projects[1], projects[7], projects[8]].map((p, i) => card(p, i)).join('')}</div></section>
@@ -251,7 +255,7 @@ const notFoundHTML = () => heroWin('404', split(T('Page not found.')), `<a class
 const lenis = window.Lenis ? new window.Lenis({ lerp: reduce ? 1 : .085, wheelMultiplier: 1.05, autoRaf: false }) : null;
 const scrollY = () => lenis ? lenis.scroll : window.scrollY;
 const limit = () => lenis ? lenis.limit : document.documentElement.scrollHeight - innerHeight;
-const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 2.1, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
+const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 2.9, lock: true, easing: t => -(Math.cos(Math.PI * t) - 1) / 2 } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
 document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) goto(+g.dataset.goto); });
 
 /* ---------- per-frame work (one loop for everything) ---------- */
@@ -267,7 +271,7 @@ function tick(t) {
   const y = scrollY(), lim = Math.max(limit(), 1);
   progress.style.transform = `scaleX(${clamp(y / lim)})`;
   if (current.name === 'home') { if (home) homeFrame(clamp(y / lim)); return; }
-  const s = y / innerHeight; W.ok && W.setPage(s, !!reel);
+  const s = y / innerHeight; W.ok && W.setPage(s, !!reel, current.name === 'contacts' && !reel);
   if (reel) reelFrame(s, y);
   if (heroIn) { const k = clamp(1 - s * 1.9); heroIn.style.opacity = k; heroIn.style.transform = `translate3d(0,${-s * 90}px,0)`; heroIn.style.visibility = k <= 0 ? 'hidden' : 'visible'; if (hint) hint.style.opacity = clamp(1 - s * 5) * .9; }
   scrim.style.opacity = Math.max(.22, clamp((s - .25) * 1.2, 0, .5));
@@ -343,7 +347,8 @@ async function go() {
   const fly = W.ok && !reduce && prev.win !== next.win;
   if (fly) { mount(next, false, true); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60)))); }
   if (W.ok && !reduce) {
-    if (scrolled) { await wait(gsap.fromTo(shutter, { scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 1, duration: .42, ease: 'power3.inOut' })); W.toFill(prev.win); gsap.fromTo(shutter, { scaleY: 1, transformOrigin: '50% 0%' }, { scaleY: 0, duration: .5, ease: 'power3.inOut', delay: .05 }); }
+    // the yellow shutter only exists while it moves (phones tint their bars with fixed coloured layers)
+    if (scrolled) { shutter.style.visibility = 'visible'; await wait(gsap.fromTo(shutter, { scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 1, duration: .42, ease: 'power3.inOut' })); W.toFill(prev.win); gsap.fromTo(shutter, { scaleY: 1, transformOrigin: '50% 0%' }, { scaleY: 0, duration: .5, ease: 'power3.inOut', delay: .05, onComplete() { shutter.style.visibility = 'hidden'; } }); }
     if (prev.win !== next.win) {
       $('.hud-k').textContent = T('NOW ENTERING'); $('.hud-name').textContent = T(routeLabel(next)); $('.hud-floor').textContent = T('FLOOR') + ' ' + pad(W.floor(next.win));
       gsap.fromTo(hud, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, delay: .35 }); gsap.to(hud, { opacity: 0, y: -20, duration: .4, delay: 2.0 });
@@ -447,7 +452,7 @@ function enterRoom() {
 (function boot() {
   const bootEl = $('#boot'), num = $('.boot-num'), bar = $('.boot-track i'), skip = $('#skip-intro'), c = { v: 0 };
   chrome();
-  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); }
+  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); W.warm && W.warm(current.win); }
   const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
   const creep = gsap.to(c, { v: 88, duration: 4, ease: 'power1.out', onUpdate: setN });
   const ready = Promise.race([
