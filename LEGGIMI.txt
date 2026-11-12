@@ -67,3 +67,15 @@ REVISIONE v4.5
 
 REVISIONE v4.6
 - Desktop: il leggero ondeggiamento della camera legato al mouse si spegne prima dell atterraggio (intro e cambi pagina) e resta spento con la finestra a schermo: il video non si sposta piu dopo l animazione.
+
+REVISIONE v5
+- Mobile e tablet: nessun effetto al passaggio del dito (gli hover valgono solo con il mouse).
+- "Take me back to the top": risalita piu lunga (2,9 s) con curva morbida e scroll bloccato durante il movimento.
+- Footer mobile: la tendina gialla delle transizioni esiste solo mentre si muove (Safari non colora piu di giallo il fondo dello schermo); colore del browser impostato sul nero del sito.
+- Let s talk mobile: il video della finestra resta come sfondo per tutta la pagina; lo stesso video e ripetuto sotto i paragrafi.
+- Video delle finestre: quello iniziale (home) parte dalla prima riga della pagina; tutti gli altri iniziano a scaricarsi subito dopo, prima il corrente e poi i vicini, pochi alla volta.
+- Solana (Breakpoint): il video salta il primo istante con meta schermo nero, anche quando ricomincia.
+
+REVISIONE v5.1
+- Let s talk mobile: il video della finestra fa da sfondo solo alla schermata del titolo "Great things start with a hello."; il contenuto sotto ha uno sfondo pieno che scorre sopra il video.
+- Home: "We love what we do." con lo stesso accento della proposta Cinema ("what we do." in serif corsivo giallo).
