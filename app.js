@@ -340,7 +340,8 @@ const VS = (() => {
     // showreel films keep playing hidden while they warm up: phones only keep buffering a clip that is playing
     if (films.includes(v)) v._warming = true;
     if (hiddenBox(v.parentElement) || hiddenBox(v.parentElement && v.parentElement.parentElement)) park(v);
-    if (v.paused) v.play().catch(() => {});
+    // service clips sit in closed panels: they only download (no hidden playback), so the page stays smooth to scroll
+    if (v.paused && !(v.closest('.srv-media') && !v.closest('.srv.open'))) v.play().catch(() => {});
   }
   function stop(v) {
     if (v && v.parentElement === stage) { unpark(v); v.pause(); }
@@ -388,7 +389,15 @@ const VS = (() => {
     async enter(r) {
       const tok = ++token, t = tower(r.win), mine = [t[0]].concat(pageClips(r));
       t.slice(1).forEach(stop); rest(r).forEach(v => { if (!mine.includes(v)) stop(v); });
-      await run(mine, 3, tok, 9000, true);
+      const key = t[0], kSrc = key && srcOf(key), clips = pageClips(r), same = clips.filter(v => srcOf(v) === kSrc), other = clips.filter(v => srcOf(v) !== kSrc);
+      same.forEach(v => { if (v.getAttribute('src') && !full(v)) { v._src = srcOf(v); v.removeAttribute('src'); v.load(); } v.preload = 'none'; });
+      await run([key], 1, tok, 9000, true);
+      if (tok !== token) return;
+      await run(other, 3, tok, 9000, true);
+      if (tok !== token) return;
+      await run([key], 1, tok, 20000);
+      if (tok !== token) return;
+      await run(same, 1, tok, 9000, true);
       if (tok !== token) return;
       await run(t.slice(1), LOW ? 2 : 3, tok);
       if (tok !== token) return;
@@ -449,9 +458,8 @@ async function go() {
     if (prev.win !== next.win) {
       $('.hud-k').textContent = T('NOW ENTERING'); $('.hud-name').textContent = T(routeLabel(next)); $('.hud-floor').textContent = T('FLOOR') + ' ' + pad(W.floor(next.win));
       gsap.fromTo(hud, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, delay: .35 }); gsap.to(hud, { opacity: 0, y: -20, duration: .4, delay: 2.0 });
-      await wait(W.fly(prev.win, next.win, next.name === 'services' ? { duration: 3.2 } : {}));
-      if (next.name === 'services') await videosReady($$('.srv-media video').slice(0, 2), 2600);
-      if (next.name === 'contacts') await videosReady([W.slot('contacts') && W.slot('contacts').videoEl], 2600);
+      await wait(W.fly(prev.win, next.win));
+      if (next.name === 'contacts') await videosReady([W.slot('contacts') && W.slot('contacts').videoEl], 900);
     }
   } else if (W.ok) { W.setActive(next.win); W.toFill(next.win); }
   if (fly) reveal(); else mount(next);
