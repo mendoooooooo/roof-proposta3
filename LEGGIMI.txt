@@ -92,3 +92,11 @@ REVISIONE v5.3
 
 REVISIONE v5.4
 - Priorita ai video delle finestre: i cinque video dei lavori iniziano a scaricarsi solo quando tutti i video delle finestre del palazzo sono in arrivo/pronti (al massimo dopo 15 secondi), cosi non rubano banda alle finestre durante il volo. Se si arriva allo schermo dei lavori prima, il video sullo schermo parte comunque subito.
+
+REVISIONE v6 - ORDINE DI CARICAMENTO DEI VIDEO
+Un unico gestore decide cosa scaricare, in questo ordine:
+1. Loader e volo d apertura: solo i video del palazzo; quello della finestra di partenza (ROOF in home) per primo e da solo, poi gli altri dal piu vicino.
+2. Quando circa due terzi del palazzo sono pronti si aggiungono i video della home (uno alla volta).
+3. Appena si entra in una pagina i download non finiti del palazzo vengono fermati: si scaricano per intero solo il video della finestra della pagina e i video della pagina (home: i cinque lavori; servizi: i video dei servizi; contatti: il video sotto il testo; progetto: i video del progetto).
+4. Finiti quelli, riprende il palazzo; finito il palazzo, si scaricano gli altri video del sito.
+Ad ogni cambio pagina si riparte dal punto 3. Un video che si sta vedendo non viene mai interrotto.
