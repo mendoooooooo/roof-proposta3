@@ -127,7 +127,7 @@ function startFilms() {
 let filmsNear = false;
 function setFilm(i, playing, also = -1) {
   filmsNear = playing;
-  films.forEach((v, j) => { if ((j === i || j === also) && playing) { if (!v.src) v.src = v.dataset.src; if (v.paused) v.play().catch(() => {}); } else if (!v.paused) v.pause(); });
+  films.forEach((v, j) => { if ((j === i || j === also) && playing) { if (!v.src) v.src = v.dataset.src; if (v.paused) v.play().catch(() => {}); } else if (!v.paused && !v._warming) v.pause(); });
   if (i === film || i < 0) return; film = i; const p = selected[i];
   $('#filmtitle').textContent = T(names(p)); $('#filmtype').textContent = T(category(p)); $('#filmsub').textContent = T(clean(p)[1]);
   $('#filmlink').href = url(p); $$('.filmcount').forEach(e => e.textContent = pad(i + 1));
@@ -330,6 +330,8 @@ const VS = (() => {
     if (!v.getAttribute('src') && s) { v.src = s; }
     const sl = slotOf(v); if (sl) sl.started = true;
     // a short muted start makes phones (iOS) really buffer; whoever owns the clip pauses it again if it is not on screen
+    // showreel films keep playing hidden while they warm up: phones only keep buffering a clip that is playing
+    if (films.includes(v)) v._warming = true;
     if (v.paused) v.play().catch(() => {});
   }
   function stop(v) {
@@ -338,10 +340,11 @@ const VS = (() => {
     v._src = srcOf(v); v.pause(); v.removeAttribute('src'); v.load();
     const sl = slotOf(v); if (sl) sl.started = false;
   }
-  const waitFull = (v, tok, max) => new Promise(res => { const t0 = performance.now(); const c = () => { if (tok !== token || full(v) || performance.now() - t0 > max) res(); else setTimeout(c, 200); }; c(); });
-  async function run(list, conc, tok, max = 15000) {
+  const playable = v => full(v) || (v && v.readyState >= 4);
+  const waitFull = (v, tok, max, enough) => new Promise(res => { const t0 = performance.now(); const c = () => { if (tok !== token || (enough ? playable(v) : full(v)) || performance.now() - t0 > max) res(); else setTimeout(c, 150); }; c(); });
+  async function run(list, conc, tok, max = 15000, enough = false) {
     let i = 0;
-    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || full(v)) continue; start(v); await waitFull(v, tok, max); } };
+    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || (enough ? playable(v) : full(v))) continue; start(v); await waitFull(v, tok, max, enough); if (v._warming) { v._warming = false; if (current.name !== "home" || !filmsNear) v.pause(); } } };
     await Promise.all(Array.from({ length: conc }, worker));
   }
   // the tower: current window first, then the nearest ones
@@ -367,18 +370,18 @@ const VS = (() => {
       if (tok !== token) return;
       const others = t.slice(1);
       // "enough" of the tower: about two thirds ready → the home clips join (one at a time)
-      const watch = setInterval(() => { if (tok !== token) return clearInterval(watch); if (others.filter(full).length >= others.length * .66) { clearInterval(watch); run(pageClips(r), 1, tok); } }, 300);
+      const watch = setInterval(() => { if (tok !== token) return clearInterval(watch); if (others.filter(full).length >= others.length * .66) { clearInterval(watch); run(pageClips(r), 2, tok, 9000, true); } }, 300);
       await run(others, LOW ? 2 : 3, tok);
     },
     // inside a page
     async enter(r) {
       const tok = ++token, t = tower(r.win), mine = [t[0]].concat(pageClips(r));
       t.slice(1).forEach(stop); rest(r).forEach(v => { if (!mine.includes(v)) stop(v); });
-      await run(mine, 2, tok);
+      await run(mine, 3, tok, 9000, true);
       if (tok !== token) return;
       await run(t.slice(1), LOW ? 2 : 3, tok);
       if (tok !== token) return;
-      await run(rest(r), 1, tok);
+      await run(pageClips(r).concat(rest(r)), 2, tok);
     },
   };
 })();
