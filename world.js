@@ -394,8 +394,12 @@ function makeSlot(def, i) {
   // DOM video
   if (def.video) {
     s.el = document.createElement('div'); s.el.className = 'win3d';
-    s.videoEl = document.createElement('video');
-    Object.assign(s.videoEl, { muted: true, loop: true, playsInline: true, preload: 'none' });
+    // the home clip may already be downloading since the first line of the page (index.html)
+    const early = window.__roofEarly && window.__roofEarly.getAttribute('src') === def.video ? window.__roofEarly : null;
+    if (early) window.__roofEarly = null;
+    s.videoEl = early || document.createElement('video');
+    Object.assign(s.videoEl, { muted: true, loop: true, playsInline: true, preload: early ? 'auto' : 'none' });
+    if (early) s.started = true;
     s.videoEl.setAttribute('playsinline', ''); s.videoEl.setAttribute('muted', ''); s.videoEl.disableRemotePlayback = true;
     s.videoEl.addEventListener('playing', () => { if (s.ready < 1 && !s._tw) s._tw = gsap.to(s, { ready: 1, duration: .7, ease: 'power2.out' }); });
     s.el.appendChild(s.videoEl); css.cam.appendChild(s.el);
@@ -498,6 +502,13 @@ function homePose(p) {
 /* ---------- public API ---------- */
 W.init = (defs) => { defs.forEach(makeSlot); resize(); requestAnimationFrame(frame); setInterval(scheduleVideos, 350); };
 W.slot = id => byId[id];
+// every window video starts downloading right away: the current one alone first, then the others (nearest first), a few at a time
+W.warm = (firstId) => {
+  const first = byId[firstId], list = slots.filter(s => s.videoEl).sort((a, b) => (b === first) - (a === first) || (first ? a.center.distanceTo(first.center) - b.center.distanceTo(first.center) : 0));
+  let i = 0, live = 0, keyDone = !first || !first.videoEl;
+  const pump = () => { const C = keyDone ? (low ? 2 : 4) : 1; while (live < C && i < list.length) { const s = list[i++], isKey = s === first; if (s.videoEl.readyState >= 3) { if (isKey) keyDone = true; continue; } live++; let over = false; const next = () => { if (over) return; over = true; live--; if (isKey) keyDone = true; pump(); }; s.videoEl.addEventListener(isKey ? 'canplaythrough' : 'canplay', next, { once: true }); s.videoEl.addEventListener('error', next, { once: true }); setTimeout(next, isKey ? 6000 : 3500); s.videoEl.preload = 'auto'; if (!s.started) { s.started = true; s.videoEl.src = s.video; } } };
+  pump();
+};
 W.homeFillDist = () => fillDist(WIN_W, WIN_H, 'home');
 W.preload = id => { const s = byId[id]; if (s && s.videoEl && !s.started) { s.started = true; s.videoEl.preload = 'auto'; s.videoEl.src = s.video; s.videoEl.play().catch(() => {}); } };
 W.floor = id => { const s = byId[id]; return s ? 12 + s.r * 2 : 0; };
@@ -522,8 +533,9 @@ W.setHome = (p) => {
   if (p > .3 && p < .64) rig.pos.z += drumPull * 6.5;
   W.parallax = p < .01 ? 0 : p < .66 ? .7 : 1.6;
 };
-W.setPage = (s, quickOpen) => {
-  if (!cur) return; const f = fillPose(cur), xa = cur.center.x, e = sm(Math.min(s, 1)), s2 = Math.max(s - 1, 0), k = Math.min(s2 / 2, 1);
+W.setPage = (s, quickOpen, hold) => {
+  if (!cur) return;
+  if (hold) { const f = fillPose(cur); rig.pos.copy(f.pos); rig.tgt.copy(f.tgt); W.setOpen(0); W.parallax = 0; return; } const f = fillPose(cur), xa = cur.center.x, e = sm(Math.min(s, 1)), s2 = Math.max(s - 1, 0), k = Math.min(s2 / 2, 1);
   rig.pos.set(f.pos.x + (xa * .45 - f.pos.x) * e - xa * .45 * k + Math.sin(s2 * .45) * 3.2 * k,
     cur.center.y + Math.sin(s2 * .6) * .5 * k, f.pos.z + (FZ - 6 - f.pos.z) * e - Math.min(s2 * 2.4, 22));
   rig.tgt.set(xa + (rig.pos.x * .6 - xa) * e + Math.sin(s2 * .3) * 7 * k, cur.center.y + .4 * e, FZ - 12 - 30 * e);
