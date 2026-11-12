@@ -106,3 +106,7 @@ REVISIONE v6.1
 
 REVISIONE v6.2
 - Video dei lavori in home piu rapidi: entrando in una pagina, tutti i suoi video vengono prima resi "pronti a partire" (tre alla volta, nell ordine in cui compaiono) invece di scaricarli per intero uno dopo l altro; il resto del file arriva dopo, quando il palazzo ha finito. Mentre si preparano restano in riproduzione nascosta, perche i telefoni continuano a scaricare solo i video che stanno girando; appena pronti tornano in pausa fino al loro turno sullo schermo.
+
+REVISIONE v6.3
+- Immagini dei progetti: tolto il caricamento "pigro" nella galleria (Safari su iPhone non carica le immagini pigre dentro un impaginazione a colonne): ora si vedono sempre.
+- Video su telefono: iPhone non scarica e non avvia un video il cui riquadro e nascosto (le finestre e gli schermi 3D lo sono finche la camera non li inquadra). Mentre un video si prepara e il suo posto non e in vista, viene tenuto in un punto minuscolo e invisibile ma "visibile" per il telefono; appena la sua finestra o il suo schermo entrano in vista torna al suo posto, gia in riproduzione.
