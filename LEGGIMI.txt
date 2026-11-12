@@ -33,3 +33,37 @@ NOTE TECNICHE
   visibili e abbassa da solo la risoluzione 3D se il computer rallenta.
 - Senza WebGL il sito mostra le pagine con il video come sfondo.
 - Con "riduci animazioni" attivo nel sistema l'intro e i voli sono disattivati.
+
+
+REVISIONE v3
+- YouTube: il riquadro apre direttamente il video originale su YouTube in una nuova scheda.
+- Home: tolto il cerchio accanto ai cinque lavori principali e la colonna nella stanza davanti alla sezione The Studio; sfondo scuro leggero dietro tutti i testi (We love what we do, The Studio, servizi, finale). Le card compaiono un attimo prima durante lo scroll.
+- Contatti: "Find us on the map" a destra sulla riga di "40125 Bologna, Italy".
+- Foto dei progetti: si aprono crescendo dalla miniatura in una cornice su fondo scuro e rientrano nella miniatura alla chiusura.
+- Mobile: la finestra/video riempie subito lo schermo (intro e cambi pagina); i cinque video dei lavori iniziano a scaricarsi appena si apre la home e compaiono solo quando girano; i progetti si aprono sempre dall inizio; Servizi: volo un po piu lungo e la pagina appare quando i primi video sono pronti, gli altri si caricano subito dopo; Contatti: video sotto il testo, senza animazione; footer con la freccia accanto alla scritta; insegna e antenna sul tetto dritte; didascalia dei lavori piu in basso con pulsante a destra.
+
+REVISIONE v4
+- Mobile, video ROOF in home: il logo resta intero con margine ai lati in una fascia centrale; sopra e sotto un riflesso sfumato dello stesso video riempie lo schermo.
+- Finale della home: niente velo scuro, il tetto con l insegna ROOF si vede dall alto come prima, con insegna e antenna dritte.
+- Refresh a meta pagina: dopo l animazione d apertura il sito scorre da solo fino al punto in cui eri.
+
+REVISIONE v4.1
+- Mobile: il riflesso attorno al video ROOF copre tutta la facciata fino al bordo del video, con una sfumatura ampia e morbida, e compare gia mentre la camera atterra: si entra direttamente nel video.
+- Finale della home: il fondo scuro arriva pieno fino al bordo inferiore.
+
+REVISIONE v4.2
+- Home: dopo l animazione iniziale (e ogni volta che si torna in home) la camera prosegue da sola attraverso la finestra ed entra nella stanza, fermandosi su "We love what we do". Dopo un refresh a meta pagina resta il ritorno al punto in cui eri.
+
+REVISIONE v4.3
+- Mobile, home: l animazione finisce con la finestra a tutto schermo come su desktop (il palazzo non si vede); dentro la finestra il video ROOF e largo quanto lo schermo, con il logo intero, su un riflesso sfumato dello stesso video. Tolto l ingresso automatico fino a "We love what we do".
+- "Take me back to the top": risalita leggermente piu lenta e con accelerazione/frenata piu morbide.
+
+REVISIONE v4.4
+- Mobile, home: la finestra sul palazzo mostra sempre il video pieno (nessuna sfumatura) durante i voli; quando la finestra riempie lo schermo il video ROOF si assesta largo il doppio dello schermo come nella proposta Cinema, con logo grande e riflesso sfumato sopra e sotto. Scorrendo appaiono le sezioni (We love what we do, ecc.).
+
+REVISIONE v4.5
+- Mobile, home: il video ROOF raggiunge la sua misura finale durante l avvicinamento della camera e all atterraggio e gia fermo, senza spostamenti successivi.
+- Desktop: il puntino giallo del puntatore compare direttamente sotto il mouse (non parte piu dal centro della pagina).
+
+REVISIONE v4.6
+- Desktop: il leggero ondeggiamento della camera legato al mouse si spegne prima dell atterraggio (intro e cambi pagina) e resta spento con la finestra a schermo: il video non si sposta piu dopo l animazione.
