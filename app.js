@@ -15,7 +15,7 @@ Object.assign(IT, {
   'ENTER THE BUILDING': 'ENTRA NEL PALAZZO', 'STEP INSIDE': 'ENTRA', 'THE ROOFTOP': 'IL TETTO', 'WHAT WE DO': 'COSA FACCIAMO',
   'Open': 'Apri', 'Close': 'Chiudi', 'VIEW': 'GUARDA', 'Take me back to the top': 'Torna all’inizio', 'Write to us': 'Scrivici',
   'SAY HELLO': 'SCRIVICI', 'HOMEBASE': 'LA NOSTRA SEDE', 'EIGHT WAYS TO MOVE AN AUDIENCE': 'OTTO MODI PER EMOZIONARE IL PUBBLICO',
-  'SELECTED FRAMES': 'IMMAGINI SELEZIONATE', 'IN MOTION': 'IN MOVIMENTO', 'Projects': 'Progetti', 'Contact': 'Contatti', 'Project': 'Progetto',
+  'SELECTED FRAMES': 'IMMAGINI SELEZIONATE', 'Opens the video on YouTube in a new tab.': 'Apre il video su YouTube in una nuova scheda.', 'IN MOTION': 'IN MOVIMENTO', 'Projects': 'Progetti', 'Contact': 'Contatti', 'Project': 'Progetto',
 });
 let lang = 'en'; try { if (localStorage.getItem('roof-language') === 'it') lang = 'it'; } catch (_) {}
 const T = s => { if (lang !== 'it' || s == null) return s; const k = String(s).trim(); return IT[k] !== undefined ? IT[k] : s; };
@@ -67,7 +67,7 @@ const heroWin = (eyebrow, title, sub = '', extra = '') => `<section class="hero-
 function card(p, i) {
   return `<a class="card" data-r href="${url(p)}" data-cat="${esc(category(p))}"><div class="card-in tilt"><div class="card-media"><img loading="lazy" src="${esc(cdn(poster(p), 900))}" alt="${E(names(p))}">${mp4(p).length ? `<video muted loop playsinline preload="none" data-hover="${esc(mp4(p)[0])}"></video>` : ''}<span class="card-num">${pad(i + 1)}</span><span class="card-glare"></span></div><div class="card-meta"><div><h3>${E(names(p))}</h3><p>${E(category(p))}</p></div><span class="card-arrow">${ARROW}</span></div></div></a>`;
 }
-const footer = () => `<footer class="foot"><div class="footer-top" data-r><span class="eyebrow">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a href="#/contacts">${E("Let's make")}<br>${E('something move.')} <span>${ARROW}</span></a></div><div class="footer-bottom"><a class="logo footer-logo" href="#/"><img src="assets/roof-logo-black.png" alt="ROOF logo"></a><p>${E('Bologna, Italy.')}<br>${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram ${ARROW}</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube ${ARROW}</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook ${ARROW}</a></div></div>${legal()}</footer>`;
+const footer = () => `<footer class="foot"><div class="footer-top" data-r><span class="eyebrow">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a href="#/contacts">${E("Let's make")}<br><span class="nowrap">${E('something move.')} <span>${ARROW}</span></span></a></div><div class="footer-bottom"><a class="logo footer-logo" href="#/"><img src="assets/roof-logo-black.png" alt="ROOF logo"></a><p>${E('Bologna, Italy.')}<br>${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram ${ARROW}</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube ${ARROW}</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook ${ARROW}</a></div></div>${legal()}</footer>`;
 const legal = () => `<div class="legal"><span>${E('© all content is copyright of RVD srl 2023 · Independent redesign concept')}</span><div><a href="https://www.iubenda.com/privacy-policy/74691616">Privacy</a><a href="https://www.iubenda.com/privacy-policy/74691616/cookie-policy">Cookies</a><a href="https://www.iubenda.com/terms-and-conditions/74691616">${E('Terms')}</a></div></div>`;
 
 /* ---------- HOME: a scroll journey through the room, the façade and the roof ---------- */
@@ -79,21 +79,40 @@ function homeHTML() {
 <section class="panel p-hero" data-range="0,.028" data-fx="hero"><div class="hero-cap"><span class="eyebrow pill">${E('DIGITAL CONTENT. LIVE EXPERIENCES.')}</span><button class="round-link pill" data-goto=".09">${E('ENTER THE BUILDING')} <i>↓</i></button></div></section>
 <section class="panel p-love" data-range=".05,.118" data-fx="zoom"><div class="hero-meta eyebrow rise"><span>${E('INDEPENDENT DIGITAL CONTENT STUDIO')}</span><span class="status">${E('BOLOGNA, ITALY — WORLDWIDE')}</span></div><h1 class="rise" style="--d:1">${E('We love')}<br>${E('what we')} <em>${E('do.')}</em></h1><p class="rise" style="--d:2">${E('Video content. 3D environments. Live experiences.')}<br>${E('We bring imagination to the stage.')}</p></section>
 <section class="panel p-studio" data-range=".14,.225" data-fx="left"><span class="eyebrow rise">${E('01 / THE STUDIO')}</span><h2 class="rise" style="--d:1">${E('Digital content.')}<br>${E('Physical impact.')}<br><em>${E('Experiences that stay.')}</em></h2><p class="body-copy rise" style="--d:2">${E(clean(D[2])[0])} ${E(clean(D[2])[1])}</p><a class="text-link rise" style="--d:3" href="#/about">${E('Meet ROOF')} ${ARROW}</a></section>
-<section class="panel p-stage" data-range=".30,.615" data-fx="stage"><div class="stage-top"><span class="tag">${E('SELECTED WORK /')} <span id="filmcount">01</span> — 05</span></div><div class="stage-caption"><div><span class="eyebrow" id="filmtype"></span><h2 id="filmtitle"></h2><p id="filmsub"></p></div><a class="project-button" id="filmlink">${E('Explore project')} <span>${ARROW}</span></a></div><div class="reel"><div class="dial" aria-hidden="true"><div class="dial-ring">${selected.map((p, i) => `<i style="--a:${i * 72}deg"></i>`).join('')}</div><span></span></div><div class="timeline">${selected.map((p, i) => `<button data-film="${i}"><b>${pad(i + 1)}</b><span>${E(names(p))}</span></button>`).join('')}</div></div></section>
+<section class="panel p-stage" data-range=".30,.615" data-fx="stage"><div class="stage-top"><span class="tag">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span></div><div class="stage-caption"><div><span class="tag tag-mobile">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span><span class="eyebrow" id="filmtype"></span><h2 id="filmtitle"></h2><p id="filmsub"></p></div><a class="project-button" id="filmlink">${E('Explore project')} <span>${ARROW}</span></a></div><div class="reel"><div class="timeline">${selected.map((p, i) => `<button data-film="${i}"><b>${pad(i + 1)}</b><span>${E(names(p))}</span></button>`).join('')}</div></div></section>
 <section class="panel p-cards" data-range=".69,.868" data-fx="up"><div class="section-head"><h2>${E('Beyond the screen.')}</h2><a href="#/works" class="text-link">${E('All projects')} ${ARROW}</a></div><div class="strip">${[projects[3], projects[4], projects[5], projects[1], projects[7], projects[8]].map((p, i) => card(p, i)).join('')}</div></section>
 <section class="panel p-services" data-range=".885,.962" data-fx="left"><span class="eyebrow rise">${E('THE ROOFTOP')}</span><h2 class="rise" style="--d:1">${E('Ideas into experiences.')}</h2><div class="mini-list">${sv.map((s, i) => `<a class="rise" style="--d:${i + 2}" href="#/services"><small>${pad(i + 1)}</small>${E(s.name)}<span>${ARROW}</span></a>`).join('')}</div><a href="#/services" class="text-link rise" style="--d:6">${E('Our services')} ${ARROW}</a></section>
-<section class="panel p-end" data-range=".975,2" data-fx="up"><span class="eyebrow rise">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a class="end-cta rise" style="--d:1" href="#/contacts">${E("Let's make")}<br>${E('something move.')} <span>${ARROW}</span></a><div class="end-row rise" style="--d:2"><p>${E('Bologna, Italy.')} ${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook</a><button data-goto="0">${E('Take me back to the top')} ↑</button></div></div>${legal()}</section>
+<section class="panel p-end" data-range=".975,2" data-fx="up"><span class="eyebrow rise">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a class="end-cta rise" style="--d:1" href="#/contacts">${E("Let's make")}<br><span class="nowrap">${E('something move.')} <span>${ARROW}</span></span></a><div class="end-row rise" style="--d:2"><p>${E('Bologna, Italy.')} ${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook</a><button data-goto="0">${E('Take me back to the top')} ↑</button></div></div>${legal()}</section>
 </div></div>`;
 }
 let home = null, film = -1;
+const amb = document.createElement('canvas'); amb.id = 'ambient'; amb.width = 24; amb.height = 44; amb.setAttribute('aria-hidden', 'true'); /* not attached: replaced by the in-window fit below */
+const ambCtx = amb.getContext('2d');
+function drawAmb() { const s = W.ok && W.slot('home'), c = s && s.el && s.el._amb; if (!c || !(s.el._b > .01) || (c._skip = !c._skip)) return; const hv = s.videoEl; if (!hv || hv.readyState < 2) return; try { c.getContext('2d').drawImage(hv, 0, 0, c.width, c.height); } catch (_) {} }
+// phones: the closer the camera gets to the home window, the more the clip settles to "logo whole + glow".
+// Tied to the camera itself, so it is complete exactly when the camera lands: nothing moves afterwards.
+function homeFitFrame() {
+  const s = W.ok && W.slot('home'); if (!s || !s.el || !s.el.classList.contains('home-win') || !W.homeFillDist) return;
+  const c = W.camera.position, d = Math.hypot(c.x - s.center.x, c.y - s.center.y, c.z - s.center.z), u = W.homeFillDist() / Math.max(d, .001);
+  const b = clamp((u - .45) / .55), e = b * b * (3 - 2 * b);
+  if (s.el._b !== undefined && Math.abs(e - s.el._b) < .002) return; s.el._b = e;
+  const fit = parseFloat(s.el.style.getPropertyValue('--fit')) || 1;
+  s.el.style.setProperty('--vw', (100 + (fit * 200 - 100) * e).toFixed(2) + '%'); s.el.style.setProperty('--ma', (1 - e).toFixed(3));
+  if (s.el._amb) s.el._amb.style.opacity = e.toFixed(3);
+}
+const ambBand = () => { const s = W.ok && W.slot('home'); if (!s || !s.el) return; if (!s.el._amb) { const c = document.createElement('canvas'); c.width = 48; c.height = 27; c.className = 'win-amb'; s.el.insertBefore(c, s.videoEl); s.el._amb = c; } const portrait = innerWidth < innerHeight; s.el.classList.toggle('home-win', portrait); if (!portrait) { s.el._fit = false; s.el.classList.remove('fit'); } s.el.style.setProperty('--fit', Math.min(1, innerWidth / (innerHeight * 1.035 * 16 / 9)).toFixed(4)); };
 // one DOM screen per face of the 3D drum
-const faceEls = selected.map(p => { const d = document.createElement('div'); d.className = 'screen3d'; d.innerHTML = `<video muted loop playsinline preload="none" poster="${esc(cdn(poster(p), 1280))}" data-src="${esc(mp4(p)[0])}"></video>`; return d; });
+const faceEls = selected.map(p => { const d = document.createElement('div'); d.className = 'screen3d'; d.style.backgroundImage = `url("${cdn(poster(p), 1280)}")`; d.innerHTML = `<video muted loop playsinline preload="none" data-src="${esc(mp4(p)[0])}"></video>`; return d; });
 const films = faceEls.map(d => d.firstElementChild);
+films.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
+// the five showreel films download as soon as the home page is up: two at once, then one after another
+let filmsWarm = false;
+function warmFilms() { if (filmsWarm) return; filmsWarm = true; const load = i => { const v = films[i]; if (v && !v.src) { v.preload = 'auto'; v.src = v.dataset.src; v.load(); } }; load(0); load(1); for (let k = 2; k < films.length; k++) setTimeout(() => load(k), 1200 * (k - 1)); }
 function setFilm(i, playing, also = -1) {
   films.forEach((v, j) => { if ((j === i || j === also) && playing) { if (!v.src) v.src = v.dataset.src; if (v.paused) v.play().catch(() => {}); } else if (!v.paused) v.pause(); });
   if (i === film || i < 0) return; film = i; const p = selected[i];
   $('#filmtitle').textContent = T(names(p)); $('#filmtype').textContent = T(category(p)); $('#filmsub').textContent = T(clean(p)[1]);
-  $('#filmlink').href = url(p); $('#filmcount').textContent = pad(i + 1);
+  $('#filmlink').href = url(p); $$('.filmcount').forEach(e => e.textContent = pad(i + 1));
   if (!reduce) gsap.fromTo(['#filmtype', '#filmtitle', '#filmsub', '#filmlink'], { y: 70, opacity: 0, rotateX: -70 }, { y: 0, opacity: 1, rotateX: 0, duration: .8, stagger: .06, ease: 'power3.out', overwrite: true });
   $$('[data-film]').forEach((b, j) => b.classList.toggle('active', j === i));
 }
@@ -101,16 +120,18 @@ function setupHome() {
   film = -1;
   home = { panels: $$('.panel').map(el => { const [a, b] = el.dataset.range.split(',').map(Number); return { el, a, b, fx: el.dataset.fx, vis: null }; }), strip: $('.strip'), cards: $$('.strip .card'), bars: $$('[data-film]'), dial: $('.dial-ring') };
   home.bars.forEach((b, i) => b.onclick = () => goto(STAGE[0] + (STAGE[1] - STAGE[0]) * (i + .25) / 5));
-  measureHome(); setFilm(0, false);
+  measureHome(); setFilm(0, false); warmFilms(); ambBand();
+  home.panels.forEach(P => { P.dim = P.el.classList.contains('p-love') || P.el.classList.contains('p-studio') || P.el.classList.contains('p-services') ? .48 : P.el.classList.contains('p-end') ? 0 : P.el.classList.contains('p-cards') ? .3 : 0; });
 }
 function measureHome() { if (!home) return; home.cards.forEach(c => { c._x = c.offsetLeft + c.offsetWidth / 2; }); home.stripW = home.strip.scrollWidth; }
 function homeFrame(p) {
   // the drum: each project holds the screen, then the prism rolls a face up while the camera steps back
   const st = clamp((p - STAGE[0]) / (STAGE[1] - STAGE[0]), 0, .9999) * 5, fi = Math.floor(st), roll = fi < 4 ? ease(clamp((st - fi - .58) / .42)) : 0;
   if (W.ok) { W.setDrum(fi + roll, reduce ? 0 : Math.sin(roll * Math.PI)); W.setHome(p); }
-  const F = .024;
+  const F = .024; let dim = 0;
   for (const P of home.panels) {
     const i = P.a <= 0 ? 1 : clamp((p - P.a) / F), o = P.b >= 1 ? 1 : clamp((P.b - p) / F), v = Math.min(i, o);
+    if (v > 0) dim = Math.max(dim, v * P.dim);
     if (v <= 0) { if (P.vis !== false) { P.vis = false; P.el.style.visibility = 'hidden'; P.el.classList.remove('on'); } continue; }
     if (!P.vis) { P.vis = true; P.el.style.visibility = 'visible'; }
     P.el.classList.toggle('on', v > .3);
@@ -124,9 +145,14 @@ function homeFrame(p) {
     }
     P.el.style.opacity = P.fx === 'stage' ? ease(v) : v; P.el.style.transform = t;
   }
+  scrim.style.opacity = dim.toFixed(3);
+  // phones: a soft live glow of the ROOF clip fills the screen above and below its logo band
+  const ao = W.ok && innerWidth < innerHeight ? 1 - clamp(p / .02) : 0;
+  if (ao !== amb._o) { amb._o = ao; amb.style.opacity = ao; }
+  // phones: only once the window fills the screen does the clip settle to "logo whole + glow"; seen on the façade it stays a normal full window
+  const hs = W.ok && W.slot('home'); if (hs && hs.el) { const want = innerWidth < innerHeight && p < .02; if (hs.el._fit !== want) { hs.el._fit = want; hs.el.classList.toggle('fit', want); } }
   const near = p > .245 && p < .66, act = roll > .5 ? fi + 1 : fi;
   setFilm(act, near, roll > 0 && roll < 1 ? (act === fi ? fi + 1 : fi) : -1);
-  home.dial.style.transform = `rotate(${(fi + roll) * -72}deg)`;
   for (let j = 0; j < home.bars.length; j++) home.bars[j].style.setProperty('--progress', clamp(st - j));
   // project cards: a 3D strip gliding past as we climb the façade
   if (p > CARDS[0] - .03 && p < CARDS[1] + .03) {
@@ -157,10 +183,13 @@ function servicesHTML() {
   return heroWin(E('WHAT WE DO'), split(T('We love')) + '<br>' + split(T('what we do.'))) +
     `<section class="sec"><p class="eyebrow sec-k" data-r>${E('EIGHT WAYS TO MOVE AN AUDIENCE')}</p><div class="srv-list">${services().map((s, i) => {
       const link = D[1].links.find(x => x.text === s.link), dest = link ? '#/project/' + link.url.split('/').filter(Boolean).pop() : '#/works', p = serviceProject(i), clip = p && mp4(p)[0];
-      return `<article class="srv" data-r="flip"><button class="srv-head" aria-expanded="false"><small>${pad(i + 1)}</small><span>${E(s.name)}</span><i>+</i></button><div class="srv-body"><div class="srv-in"><div class="srv-copy"><p>${E(s.desc)}</p>${s.link ? `<a href="${dest}">${E(s.link)} ${ARROW}</a>` : ''}</div>${clip ? `<div class="srv-media"><video muted loop playsinline preload="none" poster="${esc(cdn(poster(p), 900))}" data-src="${esc(clip)}"></video></div>` : ''}</div></div></article>`;
+      return `<article class="srv" data-r="flip"><button class="srv-head" aria-expanded="false"><small>${pad(i + 1)}</small><span>${E(s.name)}</span><i>+</i></button><div class="srv-body"><div class="srv-in"><div class="srv-copy"><p>${E(s.desc)}</p>${s.link ? `<a href="${dest}">${E(s.link)} ${ARROW}</a>` : ''}</div>${clip ? `<div class="srv-media" style="background-image:url('${esc(cdn(poster(p), 900))}')"><video muted loop playsinline preload="none" data-src="${esc(clip)}"></video></div>` : ''}</div></div></article>`;
     }).join('')}</div></section>` + footer();
 }
 function setupServices() {
+  const sv = $$('.srv-media video'); sv.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
+  const loadSrv = i => { const v = sv[i]; if (v && !v.src) { v.preload = 'auto'; v.src = v.dataset.src; v.load(); } };
+  loadSrv(0); loadSrv(1); for (let k = 2; k < sv.length; k++) setTimeout(() => loadSrv(k), 900 * (k - 1));
   $$('.srv-head').forEach(b => b.onclick = () => {
     const a = b.parentElement, opening = !a.classList.contains('open');
     $$('.srv.open').forEach(x => { if (x !== a) { x.classList.remove('open'); x.firstElementChild.setAttribute('aria-expanded', 'false'); const v = $('video', x); v && v.pause(); } });
@@ -178,13 +207,15 @@ function contactHTML() {
   const l = clean(D[3]);
   return heroWin(E('CONTACT'), split(T('Great things')) + '<br>' + split(T('start with a hello.'))) +
     `<section class="sec contact"><div class="contact-copy"><div class="contact-main"><span class="eyebrow" data-r>${E('SAY HELLO')}</span><p class="body-copy" data-r>${E(l[1].replace(/^5/, ''))}</p><a class="email magnet" data-r="flip" href="mailto:info@roofvideodesign.com">info@roofvideodesign.com ${ARROW}</a></div>
-<div class="tile tilt" data-r><span class="eyebrow">${E('HOMEBASE')}</span><p>${E(l[3])}</p><address>Roof Videodesign<br>Via Rizzoli 4<br>${E('40125 Bologna, Italy')}</address><a class="text-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">${E('Find us on the map')} ${ARROW}</a></div><div class="tile tilt" data-r><span class="eyebrow">ROOF</span><p class="body-copy">${E(l[0])}</p></div></div>
-<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
-<div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(D[3].videos[0])}"></video><i></i></div>` + footer();
+<div class="tile tilt" data-r><span class="eyebrow">${E('HOMEBASE')}</span><p>${E(l[3])}</p><div class="address-row"><address>Roof Videodesign<br>Via Rizzoli 4<br>${E('40125 Bologna, Italy')}</address><a class="text-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">${E('Find us on the map')} ${ARROW}</a></div></div><div class="tile tilt" data-r><span class="eyebrow">ROOF</span><p class="body-copy">${E(l[0])}</p></div></div>
+${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline autoplay preload="auto" src="${esc(D[3].videos[0])}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
+<div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(D[3].videos[0])}"></video><i></i></div>`}` + footer();
 }
 // Let's talk: the window video detaches, flies into the page and stays with you while you read
 let reel = null;
+const narrow = () => matchMedia('(max-width:860px)').matches;
 function setupContact() {
+  if (!$('.cvideo')) { reel = null; const v = $('.cvideo-inline video'); if (v) v.play().catch(() => {}); return; }
   const el = $('.cvideo'), v = $('video', el), slot = $('.reel-slot'), src = W.ok && W.slot('contacts');
   reel = { el, slot, r0: W.ok ? W.fillRect() : { x: 0, y: 0, w: innerWidth, h: innerHeight }, last: scrollY(), vel: 0 };
   if (src && src.videoEl && src.videoEl.currentTime) v.addEventListener('loadedmetadata', () => { try { v.currentTime = src.videoEl.currentTime % (v.duration || 1e9); } catch (_) {} }, { once: true });
@@ -207,14 +238,11 @@ function projectHTML(p) {
   return heroWin(`${pad(n + 1)} / ${pad(projects.length)} — ${E(category(p))}`, split(T(names(p))), E(lines[1]), `<a class="back" href="#/works">${E('← All projects')}</a>`) +
     `<section class="sec story"><div data-r><span class="eyebrow">${E('PROJECT NOTES')}</span><h2>${E(lead)}</h2></div><div class="story-body">${body.map(x => `<p class="body-copy" data-r>${E(x)}</p>`).join('')}${tour}${credits.length ? `<div class="credits" data-r><span class="eyebrow">CREDITS</span>${credits.map(x => `<p>${E(x)}</p>`).join('')}</div>` : ''}</div></section>
 <section class="sec"><p class="eyebrow sec-k" data-r>${E('SELECTED FRAMES')}</p><div class="gallery">${imgs(p).map((src, i) => `<button data-r="${i % 2 ? 'right' : 'left'}" data-image="${esc(cdn(src, 2000))}" aria-label="${E(names(p))} ${i + 1}"><img src="${esc(cdn(src, 1100))}" alt="${E(names(p))} ${i + 1}" loading="lazy"></button>`).join('')}</div>
-${vs.length > 1 || yt.length ? `<p class="eyebrow sec-k" data-r>${E('IN MOTION')}</p>` : ''}<div class="project-videos">${vs.slice(1).map(src => `<div class="vframe" data-scrub="tilt"><video muted loop playsinline preload="none" data-auto="${esc(src)}"></video></div>`).join('')}${yt.map(src => `<button class="embed-button" data-r data-embed="${esc(src)}">${E('Play original YouTube video')} ${ARROW}<br><small>${E('Loads external content from YouTube when clicked.')}</small></button>`).join('')}</div></section>
+${vs.length > 1 || yt.length ? `<p class="eyebrow sec-k" data-r>${E('IN MOTION')}</p>` : ''}<div class="project-videos">${vs.slice(1).map(src => `<div class="vframe" data-scrub="tilt"><video muted loop playsinline preload="none" data-auto="${esc(src)}"></video></div>`).join('')}${yt.map(src => { const id = (src.match(/embed\/([\w-]{6,})/) || [])[1]; return id ? `<a class="embed-button yt-link" data-r href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener"><span class="yt-inner">${E('Play original YouTube video')} ${ARROW}<br><small>${E('Opens the video on YouTube in a new tab.')}</small></span></a>` : ''; }).join('')}</div></section>
 <a class="next" href="${url(next)}"><span class="eyebrow">${E('NEXT PROJECT')}</span><h2>${split(T(names(next)))}</h2><span class="project-button">${E('Explore')} <span>${ARROW}</span></span><img src="${esc(cdn(poster(next), 1200))}" alt="" loading="lazy"></a>` + footer();
 }
 function setupProject(p) {
-  $$('[data-image]').forEach(b => b.onclick = () => {
-    const d = $('#lightbox'), im = $('img', d), r = b.getBoundingClientRect(); im.src = $('img', b).src; const full = new Image(); full.onload = () => { if (d.open) im.src = full.src; }; full.src = b.dataset.image; d.showModal();
-    if (!reduce) { const t = im.getBoundingClientRect(); gsap.fromTo(im, { x: r.left + r.width / 2 - (t.left + t.width / 2), y: r.top + r.height / 2 - (t.top + t.height / 2), scale: Math.max(.2, r.width / Math.max(t.width, 1)), rotateY: 25 }, { x: 0, y: 0, scale: 1, rotateY: 0, duration: .7, ease: 'power3.out' }); }
-  });
+  $$('[data-image]').forEach(b => b.onclick = () => openLightbox(b));
   $$('[data-embed]').forEach(b => b.onclick = () => { const f = document.createElement('iframe'); f.src = b.dataset.embed; f.title = names(p); f.allowFullscreen = true; f.className = 'embed'; b.replaceWith(f); });
 }
 const notFoundHTML = () => heroWin('404', split(T('Page not found.')), `<a class="text-link" href="#/works">${E('Back to projects')} ${ARROW}</a>`);
@@ -223,7 +251,7 @@ const notFoundHTML = () => heroWin('404', split(T('Page not found.')), `<a class
 const lenis = window.Lenis ? new window.Lenis({ lerp: reduce ? 1 : .085, wheelMultiplier: 1.05, autoRaf: false }) : null;
 const scrollY = () => lenis ? lenis.scroll : window.scrollY;
 const limit = () => lenis ? lenis.limit : document.documentElement.scrollHeight - innerHeight;
-const goto = p => { const y = p * limit(); lenis ? lenis.scrollTo(y, { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
+const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 2.1, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
 document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) goto(+g.dataset.goto); });
 
 /* ---------- per-frame work (one loop for everything) ---------- */
@@ -233,6 +261,8 @@ const progress = $('#progress'), scrim = $('#scrim');
 function tick(t) {
   lenis && lenis.raf(t);
   if (fine) { cur.x += (cur.tx - cur.x) * .22; cur.y += (cur.ty - cur.y) * .22; cur.el.style.transform = `translate3d(${cur.x}px,${cur.y}px,0)`; }
+  drawAmb();
+  homeFitFrame();
   if (busy) return;
   const y = scrollY(), lim = Math.max(limit(), 1);
   progress.style.transform = `scaleX(${clamp(y / lim)})`;
@@ -240,7 +270,7 @@ function tick(t) {
   const s = y / innerHeight; W.ok && W.setPage(s, !!reel);
   if (reel) reelFrame(s, y);
   if (heroIn) { const k = clamp(1 - s * 1.9); heroIn.style.opacity = k; heroIn.style.transform = `translate3d(0,${-s * 90}px,0)`; heroIn.style.visibility = k <= 0 ? 'hidden' : 'visible'; if (hint) hint.style.opacity = clamp(1 - s * 5) * .9; }
-  scrim.style.opacity = clamp((s - .25) * 1.2, 0, .5);
+  scrim.style.opacity = Math.max(.22, clamp((s - .25) * 1.2, 0, .5));
   for (const sc of scrubs) {
     const r = sc.el.getBoundingClientRect(); if (r.bottom < -100 || r.top > innerHeight + 100) continue;
     const k = clamp(1 - (r.top - innerHeight * .25) / (innerHeight * .6));
@@ -249,11 +279,11 @@ function tick(t) {
   }
 }
 if (W.ok) W.onFrame = tick; else { document.body.classList.add('no-gl'); const loop = t => { tick(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
-W.onResize = () => { measureHome(); lenis && lenis.resize(); if (reel && W.ok) { reel.r0 = W.fillRect(); reel.el.style.width = reel.r0.w + 'px'; reel.el.style.height = reel.r0.h + 'px'; } };
+W.onResize = () => { measureHome(); ambBand(); lenis && lenis.resize(); if (reel && W.ok) { reel.r0 = W.fillRect(); reel.el.style.width = reel.r0.w + 'px'; reel.el.style.height = reel.r0.h + 'px'; } };
 if (!W.ok) addEventListener('resize', W.onResize);
 
 /* ---------- mounting a page ---------- */
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .08 });
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px 14% 0px', threshold: 0 });
 const vio = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.src) v.src = v.dataset.auto; v.play().catch(() => {}); } else v.pause(); }), { threshold: .2 });
 function chrome() {
   document.documentElement.lang = lang;
@@ -281,8 +311,11 @@ function mount(r, keep, defer) {
   if (defer) { page.style.opacity = 0; page.style.pointerEvents = 'none'; return; }
   reveal(keep);
 }
+const toTop = () => { lenis && lenis.scrollTo(0, { immediate: true, force: true }); window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; };
 function reveal(keep) {
+  if (!keep) toTop();
   page.style.pointerEvents = ''; lenis && lenis.start(); reel && reel.play();
+  if (!keep) requestAnimationFrame(() => { if (scrollY() > 2) toTop(); });
   busy = false;
   if (!keep) {
     gsap.fromTo(page, { opacity: 0 }, { opacity: 1, duration: reduce ? 0 : .6, ease: 'power2.out' });
@@ -294,12 +327,14 @@ function reveal(keep) {
 /* ---------- travelling between windows ---------- */
 const hud = $('#hud'), shutter = $('#shutter');
 const wait = tl => tl.then();
+const videosReady = (list, max) => new Promise(res => { const t0 = performance.now(); const chk = () => { if (list.every(v => !v || v.readyState >= 3 || v.error) || performance.now() - t0 > max) res(); else setTimeout(chk, 120); }; chk(); });
 let pending = false;
 async function go() {
   if (busy) { pending = true; return; }
   const next = routeOf(), prev = current;
   if (next.key === prev.key) return;
-  busy = true; lenis && lenis.stop(); closeMenu();
+  busy = true; lenis && lenis.stop(); closeMenu(); amb._o = 0; amb.style.opacity = 0;
+  { const hs = W.ok && W.slot('home'); if (hs && hs.el) { hs.el._fit = false; hs.el.classList.remove('fit'); } }
   const scrolled = scrollY() > 4;
   await wait(gsap.to(page, { opacity: 0, duration: reduce ? 0 : .32, ease: 'power2.in' }));
   page.innerHTML = ''; home = null; films.forEach(v => v.pause()); scrim.style.opacity = 0; progress.style.transform = 'scaleX(0)';
@@ -312,7 +347,8 @@ async function go() {
     if (prev.win !== next.win) {
       $('.hud-k').textContent = T('NOW ENTERING'); $('.hud-name').textContent = T(routeLabel(next)); $('.hud-floor').textContent = T('FLOOR') + ' ' + pad(W.floor(next.win));
       gsap.fromTo(hud, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, delay: .35 }); gsap.to(hud, { opacity: 0, y: -20, duration: .4, delay: 2.0 });
-      await wait(W.fly(prev.win, next.win));
+      await wait(W.fly(prev.win, next.win, next.name === 'services' ? { duration: 3.2 } : {}));
+      if (next.name === 'services') await videosReady($$('.srv-media video').slice(0, 2), 2600);
     }
   } else if (W.ok) { W.setActive(next.win); W.toFill(next.win); }
   if (fly) reveal(); else mount(next);
@@ -325,12 +361,48 @@ const menuBtn = $('#menu'), nav = $('header nav');
 function closeMenu() { nav.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); }
 menuBtn.onclick = () => { const o = nav.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', o); document.body.classList.toggle('menu-open', o); };
 $$('[data-language]').forEach(b => b.onclick = () => { if (lang === b.dataset.language) return; lang = b.dataset.language; try { localStorage.setItem('roof-language', lang); } catch (_) {} if (busy) chrome(); else mount(current, true); });
-const lb = $('#lightbox'); $('.close', lb).onclick = () => lb.close(); lb.onclick = e => { if (e.target === lb) lb.close(); };
+const lb = $('#lightbox'), lbFrame = $('.lb-frame', lb), lbImg = $('img', lbFrame); let lbThumb = null, lbBusy = false;
+// locking the page must not change its width (scrollbar gap kept), or the thumbnail would move under the closing photo
+function lockScroll(on) { const html = document.documentElement; if (on) { html.style.paddingRight = (innerWidth - html.clientWidth) + 'px'; html.classList.add('lb-lock'); lenis && lenis.stop(); } else { html.classList.remove('lb-lock'); html.style.paddingRight = ''; lenis && lenis.start(); } }
+const lbRect = el => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
+function openLightbox(button) {
+  if (lbBusy || lb.open) return; const thumb = $('img', button), small = innerWidth <= 860; lbThumb = button;
+  const ratio = thumb.naturalWidth && thumb.naturalHeight ? thumb.naturalWidth / thumb.naturalHeight : 1.5;
+  const maxW = innerWidth * (small ? .92 : .84), maxH = innerHeight * (small ? .7 : .78); let w = maxW, h = w / ratio; if (h > maxH) { h = maxH; w = h * ratio; }
+  const end = { left: (innerWidth - w) / 2, top: (innerHeight - h) / 2 - (small ? 10 : 14), width: w, height: h };
+  lbImg.src = thumb.currentSrc || thumb.src; lbImg.alt = thumb.alt;
+  const hi = new Image(); hi.onload = () => { if (lb.open && lbThumb === button) lbImg.src = hi.src; }; hi.src = button.dataset.image;
+  const all = $$('[data-image]'); $('.lb-title', lb).textContent = current.p ? T(names(current.p)) : ''; $('.lb-count', lb).textContent = pad(all.indexOf(button) + 1) + ' / ' + pad(all.length);
+  lockScroll(true); lb.showModal();
+  if (reduce) { Object.assign(lbFrame.style, { left: end.left + 'px', top: end.top + 'px', width: end.width + 'px', height: end.height + 'px' }); return; }
+  const start = lbRect(button); button.style.visibility = 'hidden'; lbBusy = true;
+  gsap.timeline({ onComplete() { lbBusy = false; } })
+    .fromTo($('.lb-bg', lb), { opacity: 0 }, { opacity: 1, duration: .55, ease: 'power2.out' }, 0)
+    .fromTo(lbFrame, { ...start, opacity: 1, borderRadius: 6, rotation: -2, boxShadow: '0 0 0 rgba(0,0,0,0)' }, { ...end, borderRadius: 22, rotation: 0, boxShadow: '0 50px 140px rgba(0,0,0,.7)', duration: .85, ease: 'expo.out' }, 0)
+    .fromTo(lbImg, { scale: 1.18 }, { scale: 1, duration: 1.1, ease: 'expo.out' }, 0)
+    .fromTo([$('.lb-meta', lb), $('.lb-close', lb)], { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .6, stagger: .08, ease: 'power3.out' }, .3);
+}
+function closeLightbox() {
+  if (!lb.open || lbBusy) return; const button = lbThumb;
+  const done = () => { lb.close(); lockScroll(false); if (button) button.style.visibility = ''; gsap.set(lbFrame, { opacity: 1 }); lbBusy = false; };
+  if (reduce || !button) { done(); return; }
+  lbBusy = true; const back = lbRect(button), radius = parseFloat(getComputedStyle(button).borderTopLeftRadius) || 0;
+  gsap.timeline({ onComplete: done })
+    .to([$('.lb-close', lb), $('.lb-meta', lb)], { opacity: 0, y: 12, duration: .25, ease: 'power2.in' }, 0)
+    .to(lbImg, { keyframes: [{ scale: 1.06, duration: .35, ease: 'power2.out' }, { scale: 1, duration: .5, ease: 'power3.inOut' }] }, 0)
+    .to(lbFrame, { ...back, borderRadius: radius, boxShadow: '0 0 0 rgba(0,0,0,0)', duration: .85, ease: 'expo.inOut' }, 0)
+    .to(lbFrame, { keyframes: [{ rotation: 1.5, duration: .4, ease: 'sine.inOut' }, { rotation: 0, duration: .45, ease: 'sine.inOut' }] }, 0)
+    .to($('.lb-bg', lb), { opacity: 0, duration: .65, ease: 'power2.inOut' }, .12)
+    .call(() => { button.style.visibility = ''; }, null, .72)
+    .to(lbFrame, { opacity: 0, duration: .18, ease: 'power1.out' }, .8);
+}
+$('.lb-close', lb).onclick = closeLightbox; $('.lb-bg', lb).onclick = closeLightbox; lb.addEventListener('cancel', e => { e.preventDefault(); closeLightbox(); });
 if (fine) {
   document.body.classList.add('has-cursor');
   let tiltEl = null;
   addEventListener('pointermove', e => {
     cur.tx = e.clientX; cur.ty = e.clientY;
+    if (!cur.seen) { cur.seen = true; cur.x = cur.tx; cur.y = cur.ty; cur.el.style.transform = `translate3d(${cur.x}px,${cur.y}px,0)`; cur.el.classList.add('seen'); }
     const t = e.target.closest ? e.target.closest('.tilt') : null;
     if (tiltEl && tiltEl !== t) { tiltEl.style.setProperty('--rx', 0); tiltEl.style.setProperty('--ry', 0); }
     tiltEl = t;
@@ -349,11 +421,33 @@ if (fine) {
   }, { passive: true });
 }
 
+/* ---------- refresh mid-page: after the opening, glide back to the same point ---------- */
+try { history.scrollRestoration = 'manual'; } catch (_) {}
+addEventListener('pagehide', () => { try { sessionStorage.setItem('roof-scroll', JSON.stringify({ h: location.hash, y: scrollY() })); } catch (_) {} });
+function restoreScroll() {
+  let s = null; try { s = JSON.parse(sessionStorage.getItem('roof-scroll') || 'null'); sessionStorage.removeItem('roof-scroll'); } catch (_) {}
+  const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+  if (!s || s.h !== location.hash || s.y < 60 || (nav && nav.type !== 'reload')) return false;
+  setTimeout(() => {
+    lenis && lenis.resize(); const target = Math.min(s.y, limit());
+    if (reduce) { lenis ? lenis.scrollTo(target, { immediate: true, force: true }) : scrollTo(0, target); return; }
+    if (lenis) lenis.scrollTo(target, { duration: Math.min(4.5, Math.max(1.4, target / 2300)), easing: t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2 });
+    else scrollTo({ top: target, behavior: 'smooth' });
+  }, 450);
+  return true;
+}
+// Home: once the camera has landed on the window, keep going — through the window and into the room ("We love what we do").
+const ROOM_P = .078;
+function enterRoom() {
+  if (current.name !== 'home' || reduce) return; const target = ROOM_P * limit(); if (scrollY() >= target - 4) return;
+  if (lenis) lenis.scrollTo(target, { duration: 2.4, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 }); else scrollTo({ top: target, behavior: 'smooth' });
+}
+
 /* ---------- boot: loader → the city is built → fly into the window ---------- */
 (function boot() {
   const bootEl = $('#boot'), num = $('.boot-num'), bar = $('.boot-track i'), skip = $('#skip-intro'), c = { v: 0 };
   chrome();
-  if (W.ok) { W.init(defs); W.attachFaces(faceEls); W.setActive(current.win); W.preload(current.win); }
+  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); }
   const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
   const creep = gsap.to(c, { v: 88, duration: 4, ease: 'power1.out', onUpdate: setN });
   const ready = Promise.race([
@@ -364,7 +458,7 @@ if (fine) {
     creep.kill();
     gsap.to(c, { v: 100, duration: reduce ? 0 : .5, ease: 'power2.out', onUpdate: setN, onComplete() {
       $('.boot-label').textContent = T('READY TO EXPERIENCE');
-      const done = () => { document.body.classList.remove('is-booting', 'is-intro'); skip.remove(); mount(current); if (pending || routeOf().key !== current.key) { pending = false; go(); } };
+      const done = () => { document.body.classList.remove('is-booting', 'is-intro'); skip.remove(); mount(current); restoreScroll(); if (pending || routeOf().key !== current.key) { pending = false; go(); } };
       if (!W.ok || reduce) { W.ok && W.intro(current.win, true); gsap.to(bootEl, { opacity: 0, duration: .4, onComplete() { bootEl.remove(); } }); done(); return; }
       document.body.classList.add('is-intro');
       const intro = W.intro(current.win); intro.then(done);
