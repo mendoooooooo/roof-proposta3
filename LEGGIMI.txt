@@ -79,3 +79,10 @@ REVISIONE v5
 REVISIONE v5.1
 - Let s talk mobile: il video della finestra fa da sfondo solo alla schermata del titolo "Great things start with a hello."; il contenuto sotto ha uno sfondo pieno che scorre sopra il video.
 - Home: "We love what we do." con lo stesso accento della proposta Cinema ("what we do." in serif corsivo giallo).
+
+REVISIONE v5.2
+- Mobile, finale della home: "Take me back to the top" a destra sulla stessa riga di Instagram, YouTube e Facebook.
+- "Take me back to the top": risalita di 3,6 s con la camera ammorbidita, che scorre tra le sezioni senza fermarsi a scatti.
+- Let s talk: il volo verso la pagina aspetta che il video di sfondo possa partire; la copia sotto il testo si carica subito dopo (stesso file, dalla cache).
+- Solana (Breakpoint): saltati 1,7 s iniziali.
+- Intro d apertura piu lunga di 1 secondo (8,4 s), cosi piu video delle finestre sono pronti quando la camera arriva al palazzo.
