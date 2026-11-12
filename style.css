@@ -350,3 +350,5 @@ html.lb-lock{overflow:hidden}
 .p-love h1 em{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:400;letter-spacing:-.045em;color:var(--lime)}
 /* Let's talk on phones: the window video is the backdrop of the title screen only; the content below has its own solid ground. */
 @media(max-width:860px){body[data-route=contacts] .sec.contact{background:var(--bg);box-shadow:0 -60px 60px -10px var(--bg)}}
+/* Home finale on phones: "Take me back to the top" on the right, on the line of Instagram / YouTube / Facebook. */
+@media(max-width:860px){.end-row div{width:100%;flex-wrap:nowrap;gap:12px;font-size:11px}.end-row div button{margin-left:auto;white-space:nowrap}}
