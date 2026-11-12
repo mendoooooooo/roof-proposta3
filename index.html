@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="is-booting">
-<script>/* start downloading the home window clip at once, before anything else */(function(){var h=location.hash;if(h&&h!=="#"&&h!=="#/"&&h.indexOf("#main")!==0)return;var v=document.createElement("video");v.muted=true;v.playsInline=true;v.setAttribute("muted","");v.setAttribute("playsinline","");v.preload="auto";v.src="https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4";window.__roofEarly=v})();</script>
+<script>/* start downloading the home window clip at once, before anything else */(function(){var h=location.hash;if(h&&h!=="#"&&h!=="#/"&&h.indexOf("#main")!==0)return;var v=document.createElement("video");v.muted=true;v.playsInline=true;v.setAttribute("muted","");v.setAttribute("playsinline","");v.preload="auto";var o="https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4",small=matchMedia("(max-width:900px)").matches||(matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<820);v.src=small?"media/m/ROOF-Logo-Animation-Home-_small-short.mp4":o;window.__roofEarly=v})();</script>
 
 <!-- videos live here, in 3D, underneath the WebGL canvas -->
 <div id="css3d" aria-hidden="true"><div id="css3d-cam"></div></div>

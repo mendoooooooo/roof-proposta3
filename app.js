@@ -31,7 +31,11 @@ const projects = D.filter(p => p.path.startsWith('project/'));
 const clean = p => p.text.split('\nFollow')[0].split('\n');
 const cdn = (src, w) => src.replace('https://www.roofvideodesign.com/', 'https://i0.wp.com/www.roofvideodesign.com/') + '?w=' + w + '&ssl=1';
 const imgs = p => p.images.filter(x => x.src && x.src.startsWith('https://www.roofvideodesign.com/') && !x.src.includes('ROOF-LOGO')).map(x => x.src);
-const mp4 = p => p.videos.filter(x => x && x.endsWith('.mp4'));
+/* Phones: lighter copies of the clips (720p loops, 540p long films) shipped in media/m; desktop keeps the originals. */
+const MOBILE_CLIPS = new Set(['Be-you_Roof_1.mp4', 'Intelligent-Music-Project-Eurovision-2022_small-short.mp4', 'Intelligent-Music-Project-Eurovision-2022_small.mp4', 'ROOF-Logo-Animation-Home-_small-short.mp4', 'ROOF_Be-You_Projects_Background-Works-1.mp4', 'Roof-About_small-short.mp4', 'Roof-Camst-Innovation-Call-BTS.mp4', 'Roof-Seo-Services_small-short.mp4', 'Roof-Video-Ingresso-Camst-Header.mp4', 'Roof_Contacts-2.mp4', 'Salmo-Flop-Tour-Notch-Design-2022-Roof_small-short.mp4', 'Salmo-Flop-Tour-Notch-Design-2022-Roof_small.mp4', 'Scorpions-d3-Roof_small-short.mp4', 'Scorpions-header-Roof_small-short.mp4', 'Scorpions-home-Roof_small-short.mp4', 'Solana-Breakpoint21-Roof_small-short.mp4', 'Solana-Dataviz-Roof_small.mp4', 'Solana-HH-NFT-22-Roof_small-short.mp4', 'Solana-Post-Video_small.mp4', 'TheGiornalisti-Bologna_GoodScenes-Roof_small-short.mp4', 'TheGiornalisti-Tour-Roof_small.mp4']);
+const SMALL_SCREEN = matchMedia('(max-width:900px)').matches || (matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 820);
+const vsrc = s => { if (!SMALL_SCREEN || !s) return s; const n = String(s).split('/').pop(); return MOBILE_CLIPS.has(n) ? 'media/m/' + n : s; };
+const mp4 = p => p.videos.filter(x => x && x.endsWith('.mp4')).map(vsrc);
 const slug = p => p.path.split('/')[1];
 const types = ['Live visuals', 'Live visuals', 'Interactive', 'Live visuals', '3D & animation', 'XR & virtual', 'Live visuals', 'XR & virtual', '3D & animation'];
 const category = p => types[projects.indexOf(p)];
@@ -57,6 +61,7 @@ const defs = [
   ...projects.map((p, i) => ({ id: 'p:' + slug(p), c: winPos[i][0], r: winPos[i][1], video: mp4(p)[0] || null, poster: poster(p) ? cdn(poster(p), 640) : null })),
   { id: 'spare', c: 1, r: 0, video: null },
 ];
+defs.forEach(d => { if (d.video) d.video = vsrc(d.video); });   // window clips: light copies on phones too
 const routeOf = () => {
   const h = location.hash.replace(/^#\/?/, '').split('/');
   if (!h[0] || h[0] === 'main') return { name: 'home', win: 'home', key: 'home' };
@@ -225,8 +230,8 @@ function contactHTML() {
   return heroWin(E('CONTACT'), split(T('Great things')) + '<br>' + split(T('start with a hello.'))) +
     `<section class="sec contact"><div class="contact-copy"><div class="contact-main"><span class="eyebrow" data-r>${E('SAY HELLO')}</span><p class="body-copy" data-r>${E(l[1].replace(/^5/, ''))}</p><a class="email magnet" data-r="flip" href="mailto:info@roofvideodesign.com">info@roofvideodesign.com ${ARROW}</a></div>
 <div class="tile tilt" data-r><span class="eyebrow">${E('HOMEBASE')}</span><p>${E(l[3])}</p><div class="address-row"><address>Roof Videodesign<br>Via Rizzoli 4<br>${E('40125 Bologna, Italy')}</address><a class="text-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">${E('Find us on the map')} ${ARROW}</a></div></div><div class="tile tilt" data-r><span class="eyebrow">ROOF</span><p class="body-copy">${E(l[0])}</p></div></div>
-${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline preload="none" data-auto="${esc(D[3].videos[0])}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
-<div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(D[3].videos[0])}"></video><i></i></div>`}` + footer();
+${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline preload="none" data-auto="${esc(vsrc(D[3].videos[0]))}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
+<div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(vsrc(D[3].videos[0]))}"></video><i></i></div>`}` + footer();
 }
 // Let's talk: the window video detaches, flies into the page and stays with you while you read
 let reel = null;
