@@ -285,3 +285,62 @@ nav.open a{transform:none;opacity:1}nav.open a:nth-child(2){transition-delay:.05
 .next{padding:90px var(--pad)}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition-duration:.01ms!important}[data-r],.rise,.split .c{opacity:1;transform:none}}
+
+/* ---------- revision ---------- */
+/* Clips appear only once really moving: the poster (a cover-cropped background) shows meanwhile, never a stretched or frozen frame. */
+.screen3d,.srv-media{background-size:cover;background-position:center;background-repeat:no-repeat}
+.screen3d video,.srv-media video{opacity:0;transition:opacity .5s ease}.screen3d video.is-playing,.srv-media video.is-playing{opacity:1}
+.tag-mobile{display:none}
+.nowrap{white-space:nowrap}
+.footer-top>a .nowrap,.end-cta .nowrap{display:inline;margin-left:0;transform:none}
+/* YouTube: the box opens the original video in a new tab. */
+.yt-link{display:flex;align-items:center;justify-content:center;text-align:center;color:var(--fg);transition:color .8s cubic-bezier(.22,1,.36,1),border-color .8s cubic-bezier(.22,1,.36,1),background-color .8s cubic-bezier(.22,1,.36,1),opacity .9s ease,transform 1.2s var(--out)}
+.yt-link small{color:var(--muted);transition:color .8s cubic-bezier(.22,1,.36,1)}
+.yt-link:hover,.yt-link:focus-visible{border-color:var(--lime);color:var(--lime);background-color:#1a1c14e6}.yt-link:hover small{color:#d8d38a}
+/* Contact: map link on the line of "40125 Bologna, Italy". */
+.address-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;margin:14px 0 0}
+.address-row{flex-wrap:nowrap}.address-row address{margin:0;font-size:clamp(15px,1.55vw,22px)!important}.address-row .text-link{margin-left:auto;white-space:nowrap;flex:none}
+.cvideo-inline{border-radius:8px;overflow:hidden;box-shadow:0 30px 80px -20px #000}.cvideo-inline video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#000}
+/* Lightbox */
+#lightbox{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;overflow:hidden;color:var(--fg);perspective:none}
+#lightbox::backdrop{background:transparent}
+html.lb-lock{overflow:hidden}
+.lb-bg{position:fixed;top:-25vh;bottom:-25vh;left:0;right:0;background:radial-gradient(ellipse at 50% 42%,rgba(30,32,26,.92),rgba(5,6,9,.97) 72%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:zoom-out}
+.lb-frame{position:fixed;margin:0;overflow:hidden;background:#0d0d0b;border-radius:22px;outline:1px solid #ffffff1f;outline-offset:-1px;will-change:left,top,width,height,transform}
+#lightbox .lb-frame img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;will-change:transform}
+.lb-meta{position:fixed;left:0;right:0;bottom:clamp(18px,4vh,40px);display:flex;justify-content:center;align-items:center;gap:18px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#cfcfc4;pointer-events:none}
+.lb-meta .lb-count{color:var(--lime)}.lb-meta .lb-title:empty{display:none}
+.lb-meta .lb-title:not(:empty)+.lb-count:before{content:'';display:inline-block;width:28px;height:1px;background:#ffffff40;vertical-align:middle;margin-right:18px}
+.lb-close{position:fixed;z-index:2;top:clamp(16px,3vh,28px);right:clamp(16px,3vw,32px);width:54px;height:54px;padding:0;border-radius:50%;border:1px solid #ffffff38;background:linear-gradient(135deg,#ffffff22,#ffffff08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 #ffffff30,0 12px 30px #0007;cursor:pointer;transition:background-color .5s cubic-bezier(.22,1,.36,1),border-color .5s cubic-bezier(.22,1,.36,1)}
+.lb-close span{position:absolute;left:50%;top:50%;width:20px;height:1.5px;border-radius:2px;background:#f2f1ea;transition:transform .6s cubic-bezier(.22,1,.36,1),background-color .4s ease}
+.lb-close span:first-child{transform:translate(-50%,-50%) rotate(45deg)}.lb-close span:last-child{transform:translate(-50%,-50%) rotate(-45deg)}
+.lb-close:hover,.lb-close:focus-visible{background:var(--lime);border-color:var(--lime)}
+.lb-close:hover span,.lb-close:focus-visible span{background:#111}
+.lb-close:hover span:first-child,.lb-close:focus-visible span:first-child{transform:translate(-50%,-50%) rotate(135deg)}
+.lb-close:hover span:last-child,.lb-close:focus-visible span:last-child{transform:translate(-50%,-50%) rotate(45deg)}
+@media(max-width:860px){
+ .lb-close{width:46px;height:46px}.lb-bg{backdrop-filter:none;-webkit-backdrop-filter:none;background:radial-gradient(ellipse at 50% 42%,rgb(24,25,19),rgb(6,6,6) 75%)}
+ /* Selected work: tag, title and caption lower; small "Explore project" on the caption line. */
+ .stage-top .tag{display:none}
+ .stage-caption{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:14px;align-items:center;margin-bottom:18px}
+ .stage-caption>div{display:contents}
+ .stage-caption .tag-mobile{display:inline-block;grid-column:1/-1;justify-self:start;margin-bottom:12px}
+ #filmtype,#filmtitle{grid-column:1/-1}
+ .stage-caption h2{font-size:clamp(40px,12vw,56px);margin:8px 0 10px}
+ #filmsub{grid-column:1;font-size:12px;line-height:1.45}
+ .stage-caption .project-button{grid-column:2;margin:0;padding:9px 13px;font-size:11px;gap:8px}
+ /* "Let's make something move." a few px smaller, arrow kept beside it. */
+ .footer-top>a{font-size:clamp(28px,9.2vw,44px)}.footer-top>a .nowrap span{margin-left:10px}
+ .end-cta{font-size:clamp(28px,9.2vw,46px);margin:14px 0 24px}.p-end{padding-bottom:14px}.end-row{padding:12px 0}.end-cta .nowrap span{margin-left:10px}
+ .address-row{flex-wrap:nowrap;gap:10px}.tile address{font-size:15px;line-height:1.65}.address-row .text-link{font-size:11px}
+}
+/* Phones, home hero: live glow of the ROOF clip above and below its logo band, feathered into it. */
+#ambient{position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;opacity:0;--t:20%;--b:80%;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(var(--t) + 1%),transparent calc(var(--t) + 12%),transparent calc(var(--b) - 12%),#000 calc(var(--b) - 1%),#000 100%);mask-image:linear-gradient(to bottom,#000 0,#000 calc(var(--t) + 1%),transparent calc(var(--t) + 12%),transparent calc(var(--b) - 12%),#000 calc(var(--b) - 1%),#000 100%)}
+/* Home finale: the dark base reaches the very bottom (and beyond, under phone toolbars). */
+.p-end:after{content:'';position:absolute;left:0;right:0;top:100%;height:200px;background:#000;pointer-events:none}
+@media(max-width:860px){.p-end{background:linear-gradient(180deg,transparent 25%,#000d 55%,#000 90%)}}
+/* Phones, home window: seen on the façade it is a normal full window; once it fills the screen the ROOF clip settles to twice the screen width
+   (logo whole, with margins) over a soft live glow of itself, feathered at the top and bottom. */
+.win3d.home-win video{inset:auto;left:50%;top:50%;width:var(--vw,100%);height:auto;aspect-ratio:16/9;transform:translate(-50%,-50%);-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,var(--ma,1)) 0,#000 22%,#000 78%,rgba(0,0,0,var(--ma,1)) 100%);mask-image:linear-gradient(to bottom,rgba(0,0,0,var(--ma,1)) 0,#000 22%,#000 78%,rgba(0,0,0,var(--ma,1)) 100%)}
+.win-amb{position:absolute;inset:0;width:100%;height:100%;opacity:0}
+.has-cursor #cursor{opacity:0;transition:opacity .3s ease}.has-cursor #cursor.seen{opacity:1}
