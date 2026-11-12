@@ -10,7 +10,7 @@ const ease = t => t * t * (3 - 2 * t);
 const page = $('#page');
 
 /* ---------- clips that open on black frames: skip their first instant ---------- */
-const SKIP = { 'Solana-Breakpoint21-Roof_small-short.mp4': 1.2 };
+const SKIP = { 'Solana-Breakpoint21-Roof_small-short.mp4': 1.7 };
 document.addEventListener('loadedmetadata', e => { const v = e.target; if (!v || v.tagName !== 'VIDEO' || v._skip) return; const k = Object.keys(SKIP).find(n => (v.currentSrc || v.src || '').includes(n)); if (!k) return; v._skip = true; const to = SKIP[k]; v.loop = false; if (v.currentTime < to) v.currentTime = to; v.addEventListener('ended', () => { v.currentTime = to; v.play().catch(() => {}); }); }, true);
 
 /* ---------- language ---------- */
@@ -212,14 +212,17 @@ function contactHTML() {
   return heroWin(E('CONTACT'), split(T('Great things')) + '<br>' + split(T('start with a hello.'))) +
     `<section class="sec contact"><div class="contact-copy"><div class="contact-main"><span class="eyebrow" data-r>${E('SAY HELLO')}</span><p class="body-copy" data-r>${E(l[1].replace(/^5/, ''))}</p><a class="email magnet" data-r="flip" href="mailto:info@roofvideodesign.com">info@roofvideodesign.com ${ARROW}</a></div>
 <div class="tile tilt" data-r><span class="eyebrow">${E('HOMEBASE')}</span><p>${E(l[3])}</p><div class="address-row"><address>Roof Videodesign<br>Via Rizzoli 4<br>${E('40125 Bologna, Italy')}</address><a class="text-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">${E('Find us on the map')} ${ARROW}</a></div></div><div class="tile tilt" data-r><span class="eyebrow">ROOF</span><p class="body-copy">${E(l[0])}</p></div></div>
-${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline autoplay preload="auto" src="${esc(D[3].videos[0])}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
+${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline preload="none" data-auto="${esc(D[3].videos[0])}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
 <div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(D[3].videos[0])}"></video><i></i></div>`}` + footer();
 }
 // Let's talk: the window video detaches, flies into the page and stays with you while you read
 let reel = null;
 const narrow = () => matchMedia('(max-width:860px)').matches;
 function setupContact() {
-  if (!$('.cvideo')) { reel = null; const v = $('.cvideo-inline video'); if (v) v.play().catch(() => {}); return; }
+  if (!$('.cvideo')) { reel = null; const v = $('.cvideo-inline video'), bg = W.ok && W.slot('contacts') && W.slot('contacts').videoEl;
+    // the copy under the text loads right after the background clip (same file: it then comes from the browser cache)
+    if (v) { const go = () => { if (!v.src) { v.preload = 'auto'; v.src = v.dataset.auto; } }; if (!bg || bg.readyState >= 4) go(); else { bg.addEventListener('canplaythrough', go, { once: true }); setTimeout(go, 4000); } }
+    return; }
   const el = $('.cvideo'), v = $('video', el), slot = $('.reel-slot'), src = W.ok && W.slot('contacts');
   reel = { el, slot, r0: W.ok ? W.fillRect() : { x: 0, y: 0, w: innerWidth, h: innerHeight }, last: scrollY(), vel: 0 };
   if (src && src.videoEl && src.videoEl.currentTime) v.addEventListener('loadedmetadata', () => { try { v.currentTime = src.videoEl.currentTime % (v.duration || 1e9); } catch (_) {} }, { once: true });
@@ -255,7 +258,7 @@ const notFoundHTML = () => heroWin('404', split(T('Page not found.')), `<a class
 const lenis = window.Lenis ? new window.Lenis({ lerp: reduce ? 1 : .085, wheelMultiplier: 1.05, autoRaf: false }) : null;
 const scrollY = () => lenis ? lenis.scroll : window.scrollY;
 const limit = () => lenis ? lenis.limit : document.documentElement.scrollHeight - innerHeight;
-const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 2.9, lock: true, easing: t => -(Math.cos(Math.PI * t) - 1) / 2 } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
+const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 3.6, lock: true, easing: t => -(Math.cos(Math.PI * t) - 1) / 2, onStart() { if (W.ok) { gsap.killTweensOf(W, 'smooth'); W.smooth = 1; } }, onComplete() { if (W.ok) gsap.to(W, { smooth: 0, duration: 1, ease: 'power2.out' }); } } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
 document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) goto(+g.dataset.goto); });
 
 /* ---------- per-frame work (one loop for everything) ---------- */
@@ -354,6 +357,7 @@ async function go() {
       gsap.fromTo(hud, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, delay: .35 }); gsap.to(hud, { opacity: 0, y: -20, duration: .4, delay: 2.0 });
       await wait(W.fly(prev.win, next.win, next.name === 'services' ? { duration: 3.2 } : {}));
       if (next.name === 'services') await videosReady($$('.srv-media video').slice(0, 2), 2600);
+      if (next.name === 'contacts') await videosReady([W.slot('contacts') && W.slot('contacts').videoEl], 2600);
     }
   } else if (W.ok) { W.setActive(next.win); W.toFill(next.win); }
   if (fly) reveal(); else mount(next);
