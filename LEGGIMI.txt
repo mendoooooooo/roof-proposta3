@@ -100,3 +100,6 @@ Un unico gestore decide cosa scaricare, in questo ordine:
 3. Appena si entra in una pagina i download non finiti del palazzo vengono fermati: si scaricano per intero solo il video della finestra della pagina e i video della pagina (home: i cinque lavori; servizi: i video dei servizi; contatti: il video sotto il testo; progetto: i video del progetto).
 4. Finiti quelli, riprende il palazzo; finito il palazzo, si scaricano gli altri video del sito.
 Ad ogni cambio pagina si riparte dal punto 3. Un video che si sta vedendo non viene mai interrotto.
+
+REVISIONE v6.1
+- Loader: si apre quando almeno un terzo dei video delle finestre può partire (e i font sono pronti), mai prima di 1,1 s e mai dopo 3 s. La barra segue il maggiore tra tempo trascorso e video pronti, quindi avanza sempre in modo fluido, senza scatti ne passi indietro.
