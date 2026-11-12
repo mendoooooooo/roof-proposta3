@@ -102,4 +102,7 @@ Un unico gestore decide cosa scaricare, in questo ordine:
 Ad ogni cambio pagina si riparte dal punto 3. Un video che si sta vedendo non viene mai interrotto.
 
 REVISIONE v6.1
-- Loader: si apre quando almeno un terzo dei video delle finestre può partire (e i font sono pronti), mai prima di 1,1 s e mai dopo 3 s. La barra segue il maggiore tra tempo trascorso e video pronti, quindi avanza sempre in modo fluido, senza scatti ne passi indietro.
+- Loader: si apre quando almeno un terzo dei video delle finestre puo partire (e i font sono pronti), mai prima di 1,1 s e mai dopo 3 s. La barra segue il maggiore tra tempo trascorso e video pronti, quindi avanza sempre in modo fluido, senza scatti ne passi indietro.
+
+REVISIONE v6.2
+- Video dei lavori in home piu rapidi: entrando in una pagina, tutti i suoi video vengono prima resi "pronti a partire" (tre alla volta, nell ordine in cui compaiono) invece di scaricarli per intero uno dopo l altro; il resto del file arriva dopo, quando il palazzo ha finito. Mentre si preparano restano in riproduzione nascosta, perche i telefoni continuano a scaricare solo i video che stanno girando; appena pronti tornano in pausa fino al loro turno sullo schermo.
