@@ -86,3 +86,9 @@ REVISIONE v5.2
 - Let s talk: il volo verso la pagina aspetta che il video di sfondo possa partire; la copia sotto il testo si carica subito dopo (stesso file, dalla cache).
 - Solana (Breakpoint): saltati 1,7 s iniziali.
 - Intro d apertura piu lunga di 1 secondo (8,4 s), cosi piu video delle finestre sono pronti quando la camera arriva al palazzo.
+
+REVISIONE v5.3
+- Home: i cinque video dei lavori iniziano a scaricarsi gia durante il volo d apertura (due alla volta) e vengono avviati per un istante, cosi anche su iPhone sono davvero caricati; quando si arriva allo schermo dei lavori sono gia visibili e partono subito.
+
+REVISIONE v5.4
+- Priorita ai video delle finestre: i cinque video dei lavori iniziano a scaricarsi solo quando tutti i video delle finestre del palazzo sono in arrivo/pronti (al massimo dopo 15 secondi), cosi non rubano banda alle finestre durante il volo. Se si arriva allo schermo dei lavori prima, il video sullo schermo parte comunque subito.
