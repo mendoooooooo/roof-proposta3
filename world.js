@@ -572,13 +572,13 @@ W.intro = (to, quick) => {
   const o = { u: 0 }, t0 = new V3(0, 46, 0);
   tl.to(U.uGrow, { value: 1, duration: 3.6, ease: 'power1.out' }, 0)
     .to(U.uGrowT, { value: 1, duration: 2.6, ease: 'power3.inOut', onStart() { roof.visible = false; }, onComplete() { roof.visible = true; } }, .9)
-    .to(o, { u: 1, duration: 7.4, ease: 'power2.inOut', onUpdate() { curve.getPoint(o.u, rig.pos); rig.tgt.lerpVectors(t0, pb.tgt, ss(.12, .8, o.u)); rig.roll = Math.sin(o.u * Math.PI) * .06; } }, 0);
+    .to(o, { u: 1, duration: 8.4, ease: 'power2.inOut', onUpdate() { curve.getPoint(o.u, rig.pos); rig.tgt.lerpVectors(t0, pb.tgt, ss(.12, .8, o.u)); rig.roll = Math.sin(o.u * Math.PI) * .06; } }, 0);
   slots.forEach((s, i) => {
     const at = 3.6 + ((i * 7) % slots.length) * .11;
     tl.to(s, { keyframes: [{ on: .7, duration: .06 }, { on: .15, duration: .08 }, { on: 1, duration: .25 }] }, at);
   });
-  tl.to(W, { parallax: 0, duration: 1.4, ease: "power2.inOut" }, 5.4);   // sway gone before the landing: the video is perfectly still when the camera stops
-  tl.call(() => W.highlight(to, 1), null, 4.6).call(() => W.highlight(to, 0), null, 7.2);
+  tl.to(W, { parallax: 0, duration: 1.4, ease: "power2.inOut" }, 6.4);   // sway gone before the landing: the video is perfectly still when the camera stops
+  tl.call(() => W.highlight(to, 1), null, 5.2).call(() => W.highlight(to, 0), null, 8.2);
   return tl;
 };
 W.rig = rig; W.camera = camera; W.renderer = renderer; W.scene = scene;
@@ -593,7 +593,7 @@ function resize() {
   if (W.onResize) W.onResize();
 }
 addEventListener('resize', resize);
-let last = 0, slow = 0, par = 1;
+let last = 0, slow = 0, par = 1; W.smooth = 0; const camS = { pos: rig.pos.clone(), tgt: rig.tgt.clone() };
 function frame(t) {
   requestAnimationFrame(frame);
   const dt = Math.min(t - last, 100); last = t;
@@ -604,9 +604,10 @@ function frame(t) {
   if (dt > 40) { if (++slow > 45 && dpr > 1) { dpr = Math.max(1, dpr - .25); renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight, false); slow = 0; } } else slow = Math.max(0, slow - 1);
   mouse.sx += (mouse.x - mouse.sx) * .045; mouse.sy += (mouse.y - mouse.sy) * .045; par += (W.parallax - par) * .06;
   const f = W.baseFov + (rig.fov || 0); if (Math.abs(camera.fov - f) > .01) { camera.fov = f; camera.updateProjectionMatrix(); }
-  camera.position.copy(rig.pos); camera.lookAt(rig.tgt);
+  if (W.smooth > 0) { const k = 1 - W.smooth * .9; camS.pos.lerp(rig.pos, k); camS.tgt.lerp(rig.tgt, k); } else { camS.pos.copy(rig.pos); camS.tgt.copy(rig.tgt); }
+  camera.position.copy(camS.pos); camera.lookAt(camS.tgt);
   camera.translateX(mouse.sx * par); camera.translateY(-mouse.sy * par * .6);
-  camera.lookAt(rig.tgt); if (rig.roll) camera.rotateZ(rig.roll);
+  camera.lookAt(camS.tgt); if (rig.roll) camera.rotateZ(rig.roll);
   camera.updateMatrixWorld(); camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
   W._sky.position.copy(camera.position);
   // rooms only exist while you can see into them
