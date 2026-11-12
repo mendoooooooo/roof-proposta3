@@ -505,9 +505,9 @@ W.slot = id => byId[id];
 // every window video starts downloading right away: the current one alone first, then the others (nearest first), a few at a time
 W.warm = (firstId) => {
   const first = byId[firstId], list = slots.filter(s => s.videoEl).sort((a, b) => (b === first) - (a === first) || (first ? a.center.distanceTo(first.center) - b.center.distanceTo(first.center) : 0));
-  let i = 0, live = 0, keyDone = !first || !first.videoEl;
-  const pump = () => { const C = keyDone ? (low ? 2 : 4) : 1; while (live < C && i < list.length) { const s = list[i++], isKey = s === first; if (s.videoEl.readyState >= 3) { if (isKey) keyDone = true; continue; } live++; let over = false; const next = () => { if (over) return; over = true; live--; if (isKey) keyDone = true; pump(); }; s.videoEl.addEventListener(isKey ? 'canplaythrough' : 'canplay', next, { once: true }); s.videoEl.addEventListener('error', next, { once: true }); setTimeout(next, isKey ? 6000 : 3500); s.videoEl.preload = 'auto'; if (!s.started) { s.started = true; s.videoEl.src = s.video; } } };
-  pump();
+  let i = 0, live = 0, keyDone = !first || !first.videoEl, finish; const done = new Promise(r => finish = r);
+  const pump = () => { if (i >= list.length && live === 0) finish(); const C = keyDone ? (low ? 2 : 4) : 1; while (live < C && i < list.length) { const s = list[i++], isKey = s === first; if (s.videoEl.readyState >= 3) { if (isKey) keyDone = true; continue; } live++; let over = false; const next = () => { if (over) return; over = true; live--; if (isKey) keyDone = true; pump(); }; s.videoEl.addEventListener(isKey ? 'canplaythrough' : 'canplay', next, { once: true }); s.videoEl.addEventListener('error', next, { once: true }); setTimeout(next, isKey ? 6000 : 3500); s.videoEl.preload = 'auto'; if (!s.started) { s.started = true; s.videoEl.src = s.video; } } if (i >= list.length && live === 0) finish(); };
+  pump(); return done;
 };
 W.homeFillDist = () => fillDist(WIN_W, WIN_H, 'home');
 W.preload = id => { const s = byId[id]; if (s && s.videoEl && !s.started) { s.started = true; s.videoEl.preload = 'auto'; s.videoEl.src = s.video; s.videoEl.play().catch(() => {}); } };
