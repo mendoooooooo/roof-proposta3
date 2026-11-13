@@ -383,3 +383,28 @@ nav{overscroll-behavior:contain}
  .cover-foot p{padding-right:58px}
  .project-cover-caption h1{max-width:calc(100% - 50px)}
 }
+
+/* ---------- v10 ---------- */
+/* Home showcase on phones: the title has its own full-width line, caption and Explore button share the line below */
+@media(max-width:760px){
+ .stage-caption h2{grid-column:1 / -1;grid-row:2;margin-bottom:6px}
+ .stage-caption p{grid-column:1;grid-row:3}
+ .stage-caption .project-button{grid-column:2;grid-row:3}
+}
+/* Phone sideways: smaller body text, and a project header that never gets cut */
+@media(orientation:landscape) and (max-height:520px){
+ .service-body p,.body-copy,.studio-story>div>p,.project-narrative>p,.contact-scene .contact-description{font-size:13.5px;line-height:1.7}
+ .studio-opening p{font-size:13px}
+ .project-content{padding:35px 5vw;gap:30px}
+ .project-content h2{font-size:24px}
+ .cx-credits p{font-size:10.5px}
+ .project-cover{height:auto;min-height:calc(100svh - 76px)}
+ .project-cover-media{height:auto;min-height:100%}
+ .project-cover-caption{padding:20px 4vw 22px;justify-content:flex-start}
+ .project-cover-caption .back{margin-bottom:18px}
+ .project-cover-caption .eyebrow{margin-top:auto}
+ .project-cover-caption h1{font-size:34px;margin:8px 0 10px}
+ .cover-foot{margin-bottom:0}
+ .cover-foot p{font-size:12px}
+}
+@media(orientation:landscape) and (max-height:520px) and (min-width:761px){.project-cover{min-height:calc(100svh - 96px)}}
