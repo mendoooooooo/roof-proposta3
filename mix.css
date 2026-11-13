@@ -359,3 +359,27 @@ nav{overscroll-behavior:contain}
  nav .contact-link span{margin-left:8px}
  .language-switch{margin-left:0}
 }
+
+/* Yellow arrow buttons: their bottom edge lines up with the bottom of the caption line */
+.stage-caption p{margin-bottom:0}
+.cover-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:auto}
+.cover-foot p{margin:0!important}
+.cover-foot .read-project{position:static;flex:none;right:auto;bottom:auto}
+@media(max-width:760px){
+ .stage-caption #filmtype{grid-row:1}
+ .stage-caption h2{grid-row:2}
+ .stage-caption p{grid-row:3;margin:0;align-self:end}
+ .stage-caption .project-button{grid-row:3;align-self:end}
+ .project-cover-caption{padding-bottom:35px}
+}
+@media(orientation:landscape) and (max-height:520px){.project-cover-caption{padding-bottom:22px}}
+/* the button no longer pushes the caption down: caption sits right under the title, button bottom = caption bottom */
+.cover-foot{position:relative;display:block}
+.cover-foot p{padding-right:72px}
+.cover-foot .read-project{position:absolute;right:0;bottom:0}
+.project-cover-caption h1{max-width:calc(100% - 60px)}
+@media(max-width:760px){
+ .stage-caption .project-button{grid-row:2 / 4}
+ .cover-foot p{padding-right:58px}
+ .project-cover-caption h1{max-width:calc(100% - 50px)}
+}
