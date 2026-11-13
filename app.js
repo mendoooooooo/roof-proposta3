@@ -25,7 +25,7 @@ function hoverVideos(){
  nearObserver=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
   const detail=v.closest('details');
   if(isIntersecting&&(!detail||detail.open)&&v.preload!=='auto'&&(!v.dataset.wait||v.dataset.go)){v.preload='auto';nearObserver.unobserve(v)}
- }),{rootMargin:'0px 0px 600px 0px'});
+ }),{rootMargin:'1200px 0px 1400px 0px'});
  document.querySelectorAll('video:not(.film video)').forEach(v=>nearObserver.observe(v));
  observer=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
   const detail=v.closest('details');
@@ -92,7 +92,8 @@ const preHold=document.createElement('div');preHold.setAttribute('aria-hidden','
 const LOGO_MP4='https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4';
 var preloaded=[]; // var: render() runs once before this line, on first load
 function firstVideos(hash){const p=hash.replace(/^#\/?/,'').split('/');
- if(!p[0])return [LOGO_MP4];
+ if(!p[0])return [LOGO_MP4,mp4(projects[0])[0]];
+  if(p[0]==='works')return projects.slice(0,2).map(x=>mp4(x)[0]).filter(Boolean);
  if(p[0]==='about')return [LOGO_MP4];
  if(p[0]==='contacts')return [data[3].videos[0]];
  if(p[0]==='project'){const pr=projects.find(x=>slug(x)===p[1]);return pr&&mp4(pr)[0]?[mp4(pr)[0]]:[]}
@@ -181,5 +182,14 @@ function landFlight(){
   .to(f.veil,{opacity:0,duration:.6,ease:'power2.inOut'},'-=.5');
 }
 
-(()=>{const nav=$('nav'),btn=$('#menu');new MutationObserver(()=>{const open=nav.classList.contains('open');document.body.classList.toggle('menu-open',open);btn.textContent=open?'Close ×':'Menu +'}).observe(nav,{attributes:true,attributeFilter:['class']});
- nav.addEventListener('click',e=>{if(e.target===nav){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}})})();
+(()=>{const nav=$('nav'),btn=$('#menu'),phoneLandscape=matchMedia('(orientation:landscape) and (max-height:520px)');let locked=false,lockY=0,lockHash='';
+ // the page behind the open menu is pinned in place (overflow:hidden alone does not stop iOS from scrolling it)
+ const lock=on=>{if(on===locked)return;locked=on;const b=document.body;
+  if(on){lockY=scrollY;lockHash=location.hash;b.style.top=-lockY+'px';b.classList.add('menu-open')}
+  else{b.classList.remove('menu-open');b.style.top='';if(location.hash===lockHash)scrollTo({top:lockY,behavior:'instant'})}};
+ new MutationObserver(()=>{const open=nav.classList.contains('open');lock(open);btn.textContent=open?'Close ×':'Menu +'}).observe(nav,{attributes:true,attributeFilter:['class']});
+ nav.addEventListener('touchmove',e=>{if(nav.classList.contains('open')&&e.target===nav)e.preventDefault()},{passive:false});
+ // phone turned sideways: the menu items sit in the header, so an open menu is closed
+ const sideways=()=>{if(phoneLandscape.matches&&nav.classList.contains('open')){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}};
+ phoneLandscape.addEventListener?phoneLandscape.addEventListener('change',sideways):phoneLandscape.addListener(sideways);
+})();

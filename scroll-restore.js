@@ -21,7 +21,7 @@
     return { id, known: false };
   };
   let current = idOf().id, frozen = false, lastY = scrollY;
-  addEventListener('scroll', () => { if (!frozen) { lastY = scrollY; positions[current] = Math.round(scrollY); } }, { passive: true });
+  addEventListener('scroll', () => { if (!frozen && !document.body.classList.contains('menu-open')) { lastY = scrollY; positions[current] = Math.round(scrollY); } }, { passive: true });
 
   let glideToken = 0;
   const glide = target => {
