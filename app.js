@@ -1,597 +1,185 @@
-/* ROOF — pages, routing and choreography. The 3D world lives in world.js. */
-(() => {
-'use strict';
-const D = window.ROOF_DATA, IT = window.ROOF_ITALIAN || {}, W = window.World || { ok: false }, gsap = window.gsap;
-const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
-const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const ease = t => t * t * (3 - 2 * t);
-const page = $('#page');
+if(window.gsap)document.documentElement.classList.add('has-gsap');
+const $=s=>document.querySelector(s),main=$('main'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let data,projects,active=0,paused=false,scrollHandler=null,observer;const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const clean=p=>p.text.split('\nFollow')[0].split('\n');const imgs=p=>p.images.filter(x=>x.src&&x.src.startsWith('https://www.roofvideodesign.com/')&&!x.src.includes('ROOF-LOGO')).map(x=>x.src);const mp4=p=>p.videos.filter(x=>x&&x.endsWith('.mp4'));const slug=p=>p.path.split('/')[1];const types=['Live visuals','Live visuals','Interactive','Live visuals','3D & animation','XR & virtual','Live visuals','XR & virtual','3D & animation'];const category=p=>types[projects.indexOf(p)];const url=p=>'#/project/'+slug(p);const names=p=>clean(p)[0];const poster=p=>imgs(p)[0]||'';/* Phones: lighter copies of the clips (720p loops, 540p long films) shipped in media/m; desktop keeps the originals. */const MOBILE_CLIPS=new Set(['Be-you_Roof_1.mp4','Intelligent-Music-Project-Eurovision-2022_small-short.mp4','Intelligent-Music-Project-Eurovision-2022_small.mp4','ROOF-Logo-Animation-Home-_small-short.mp4','ROOF_Be-You_Projects_Background-Works-1.mp4','Roof-About_small-short.mp4','Roof-Camst-Innovation-Call-BTS.mp4','Roof-Seo-Services_small-short.mp4','Roof-Video-Ingresso-Camst-Header.mp4','Roof_Contacts-2.mp4','Salmo-Flop-Tour-Notch-Design-2022-Roof_small-short.mp4','Salmo-Flop-Tour-Notch-Design-2022-Roof_small.mp4','Scorpions-d3-Roof_small-short.mp4','Scorpions-header-Roof_small-short.mp4','Scorpions-home-Roof_small-short.mp4','Solana-Breakpoint21-Roof_small-short.mp4','Solana-Dataviz-Roof_small.mp4','Solana-HH-NFT-22-Roof_small-short.mp4','Solana-Post-Video_small.mp4','TheGiornalisti-Bologna_GoodScenes-Roof_small-short.mp4','TheGiornalisti-Tour-Roof_small.mp4']);const SMALL_SCREEN=matchMedia('(max-width:900px)').matches||(matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<820);const vsrc=s=>{if(!SMALL_SCREEN||!s)return s;const n=String(s).split('/').pop();return MOBILE_CLIPS.has(n)?'media/m/'+n:s};const video=(src,opts='')=>`<video disablepictureinpicture disableremoteplayback playsinline webkit-playsinline muted loop controlslist="nodownload nofullscreen noremoteplayback" ${!reduce&&opts.includes('data-eager')?'autoplay':''} ${opts} src="${esc(vsrc(src))}"></video>`;
+/* Images: resized WebP copies from the WordPress image CDN (i0.wp.com), original as fallback. */
+const cdn=(src,w)=>src&&src.startsWith('https://www.roofvideodesign.com/')?`https://i0.wp.com/${src.slice(8)}?w=${w}&ssl=1`:src;
+const srcset=(src,ws)=>ws.map(w=>`${esc(cdn(src,w))} ${w}w`).join(', ');
+const pic=(src,alt,{ws=[600,1000,1600],sizes='100vw',attrs='loading="lazy"'}={})=>`<img ${attrs} decoding="async" src="${esc(cdn(src,ws[1]||ws[0]))}" srcset="${srcset(src,ws)}" sizes="${sizes}" data-orig="${esc(src)}" alt="${esc(alt)}">`;
+const posterUrl=p=>cdn(poster(p),innerWidth<=760?1000:1920);
+document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.orig&&t.src!==t.dataset.orig){t.removeAttribute('srcset');t.src=t.dataset.orig}},true);const paragraphs=a=>a.map(x=>`<p>${esc(x)}</p>`).join('');
+function card(p){return `<a class="card" href="${url(p)}"><div class="card-media">${pic(poster(p),names(p)+' — project photography',{ws:[500,900,1400],sizes:'(max-width:760px) 50vw, 46vw'})}${mp4(p).length?video(mp4(p)[0],'preload="none"'):''}</div><div class="card-meta"><div><h3>${esc(names(p))}</h3><p>${esc(category(p))}</p></div><span class="card-arrow"><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></div></a>`}
+function home(){let selected=[projects[0],projects[2],projects[3],projects[4],projects[6]];main.innerHTML=`<section class="brand-intro" aria-label="ROOF animated identity">${video('https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4','class="brand-video" preload="auto" data-eager fetchpriority="high"')}<div class="brand-caption"><span class="eyebrow">DIGITAL CONTENT. LIVE EXPERIENCES.</span><a href="#selected" class="round-link">EXPLORE OUR WORLD <i>↓</i></a></div></section><section class="statement" aria-label="We love what we do"><span class="eyebrow">ROOF / DIGITAL CONTENT STUDIO</span><h1>We love<br><em>what we do.</em></h1><p>Video content. 3D environments. Live experiences.<br>We bring imagination to the stage.</p><a class="round-link" href="#selected">SCROLL TO EXPLORE <i>↓</i></a></section><section class="showcase" id="selected" aria-label="Selected projects"><div class="stage">${selected.map((p,i)=>`<div class="film ${i===0?'active':''}" aria-hidden="${i!==0}">${video(mp4(p)[0],`class="film-video" preload="${i===0?'auto':'none'}" poster="${esc(posterUrl(p))}"`)}<div class="shade"></div></div>`).join('')}<div class="stage-top"><span class="tag">SELECTED WORK / <span class="filmcount">01</span> — 05</span></div><div class="stage-caption"><div><span class="tag tag-mobile">SELECTED WORK / <span class="filmcount">01</span> — 05</span><span class="eyebrow" id="filmtype"></span><h2 id="filmtitle"></h2><p id="filmsub"></p></div><a class="project-button" id="filmlink">Explore project <span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a></div><div class="timeline">${selected.map((p,i)=>`<button data-film="${i}" aria-label="Show ${esc(names(p))}"><b>0${i+1}</b>${esc(names(p))}</button>`).join('')}</div></div></section><section class="section intro"><span class="eyebrow">01 / THE STUDIO</span><div><h2>Digital content.<br>Physical impact.<br><span>Experiences that stay.</span></h2><p class="body-copy">${esc(clean(data[2]).slice(0,2).join(' '))}</p><a class="text-link" href="#/about">Meet ROOF <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div></section><section class="section"><div class="section-head"><h2>Beyond the screen.</h2><a href="#/works" class="text-link">All projects <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div><div class="grid">${[projects[3],projects[4],projects[5],projects[1]].map(card).join('')}</div></section><div class="ticker" aria-hidden="true"><div>LIVE VISUALS <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> 3D WORLDS <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> REAL-TIME <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> LIVE VISUALS <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> 3D WORLDS <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> REAL-TIME <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg> </div></div><section class="section"><div class="section-head"><h2>Ideas into experiences.</h2><a href="#/services" class="text-link">Our services <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div>${serviceList(4)}</section>`;active=-1;paused=reduce;function set(i){if(active===i)return;active=i;document.querySelectorAll('.film').forEach((el,j)=>{el.classList.toggle('active',j===i);el.setAttribute('aria-hidden',j!==i);if(window.gsap&&!reduce)gsap.to(el,{opacity:j===i?1:0,scale:j===i?1:1.045,duration:.85,ease:'power2.inOut',overwrite:true});let v=el.querySelector('video');if(j===i&&!paused)v.play().catch(()=>{});else v.pause();if(j===i+1||j===i-1)v.preload='auto'});let p=selected[i];$('#filmtitle').textContent=names(p);$('#filmtype').textContent=category(p);$('#filmsub').textContent=clean(p)[1];$('#filmlink').href=url(p);document.querySelectorAll('.filmcount').forEach(c=>c.textContent='0'+(i+1));if(window.gsap&&!reduce){gsap.fromTo(['#filmtype','#filmtitle','#filmsub','#filmlink'],{y:24,opacity:0},{y:0,opacity:1,duration:.65,stagger:.055,ease:'power3.out',overwrite:true})}document.querySelectorAll('[data-film]').forEach((b,j)=>{b.classList.toggle('active',i===j);b.setAttribute('aria-pressed',i===j);if(reduce)b.style.setProperty('--progress',j<=i?1:0)})}set(0);scrollHandler=()=>{if(reduce)return;let el=$('.showcase');if(!el)return;let r=el.getBoundingClientRect(),range=el.offsetHeight-$('.stage').offsetHeight;let progress=Math.max(0,Math.min(5,(-r.top/range)*5));set(Math.min(4,Math.floor(progress)));document.querySelectorAll('[data-film]').forEach((b,j)=>b.style.setProperty('--progress',Math.max(0,Math.min(1,progress-j))))};window.addEventListener('scroll',scrollHandler,{passive:true});document.querySelectorAll('[data-film]').forEach(b=>b.onclick=()=>{let i=+b.dataset.film;if(reduce){set(i);return}let el=$('.showcase'),range=el.offsetHeight-$('.stage').offsetHeight;window.scrollTo({top:el.offsetTop+range*(i+.1)/5,behavior:'smooth'})});}
 
-/* ---------- clips that open on black frames: skip their first instant ---------- */
-const SKIP = { 'Solana-Breakpoint21-Roof_small-short.mp4': 1.7 };
-document.addEventListener('loadedmetadata', e => { const v = e.target; if (!v || v.tagName !== 'VIDEO' || v._skip) return; const k = Object.keys(SKIP).find(n => (v.currentSrc || v.src || '').includes(n)); if (!k) return; v._skip = true; const to = SKIP[k]; v.loop = false; if (v.currentTime < to) v.currentTime = to; v.addEventListener('ended', () => { v.currentTime = to; v.play().catch(() => {}); }); }, true);
+function services(){const lines=clean(data[1]).slice(1);let result=[];for(let i=0;i<lines.length;){let name=lines[i++],desc=lines[i++],link=null;if(lines[i]?.startsWith('see our work'))link=lines[i++];result.push({name,desc,link})}return result}
+function serviceList(limit=99){return `<div class="services-list">${services().slice(0,limit).map((s,i)=>{let link=data[1].links.find(x=>x.text===s.link);let dest=link?'#/project/'+link.url.split('/').filter(Boolean).pop():'#/works';let p=projects.find(p=>slug(p)===['intelligent-music-project','salmo','be-you','solana','camst','thegiornalisti','solana-labs'][i]);let clip=p&&mp4(p)[0];return `<details><summary><small>0${i+1}</small>${esc(s.name)}<span>+</span></summary><div class="service-body ${clip?'has-media':''}"><div class="service-copy"><p>${esc(s.desc)}</p>${s.link?`<a href="${dest}">${esc(s.link)} <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>`:''}</div>${clip?video(clip,`preload="none" class="service-video" poster="${esc(cdn(poster(p),1000))}"`):''}</div></details>`}).join('')}</div>`}
+function head(k,title,sub=''){return `<section class="page-head reveal"><span class="eyebrow">${k}</span><h1>${title}</h1>${sub?`<p>${sub}</p>`:''}</section>`}
+function archiveCard(p,i){return `<a class="archive-card" href="${url(p)}"><div class="archive-media">${pic(poster(p),names(p)+' — project photography',{ws:[500,900,1400],sizes:'(max-width:760px) 92vw, 46vw'})}${mp4(p).length?video(mp4(p)[0],'preload="none"'):''}</div><div class="archive-info"><small>${String(i+1).padStart(2,'0')}</small><div><h2>${esc(names(p))}</h2><span>${esc(category(p))}</span></div><i aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></i></div></a>`}
+function works(){main.innerHTML=`<section class="page-head works-head reveal"><span class="eyebrow">THE PORTFOLIO / 09 PROJECTS</span><h1>What we create.</h1></section><section class="archive"><div class="filterbar" aria-label="Filter projects">${['All projects','Live visuals','3D & animation','Interactive','XR & virtual'].map((x,i)=>`<button class="${i===0?'active':''}" aria-pressed="${i===0}" data-filter="${x}">${x}</button>`).join('')}</div><div class="archive-grid" id="projects">${projects.map(archiveCard).join('')}</div></section>`;document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',x===b)});$('#projects').innerHTML=projects.filter(p=>b.dataset.filter==='All projects'||category(p)===b.dataset.filter).map(archiveCard).join('');hoverVideos();if(window.gsap&&!reduce)gsap.fromTo('#projects>.archive-card',{y:30,opacity:0},{y:0,opacity:1,duration:.6,stagger:.05,ease:'power3.out',clearProps:'transform,opacity'});if(window.ScrollTrigger)ScrollTrigger.refresh()})}
+function about(){const lines=clean(data[2]);main.innerHTML=`<section class="studio-opening"><div><span class="eyebrow">THE STUDIO</span><h1>We are ROOF.</h1><p>${esc(lines.slice(0,2).join(' '))}</p><span class="eyebrow">BOLOGNA, ITALY — WORLDWIDE</span></div><div class="studio-identity">${video('https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4','preload="auto" data-eager')}<span>CREATIVE MINDS. SHARED VISION.</span></div></section><section class="studio-story"><div class="story-manifesto"><span class="eyebrow">OUR APPROACH</span><h2>We love<br>what we do.</h2><p>Digital content.<br>Live experiences.</p></div><div>${paragraphs(lines.slice(2))}</div></section><section class="cx-clients"><div class="studio-principle"><div class="principle-track"><div class="principle-group"><span>Digital content.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg><span>Physical impact.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg><span>Experiences that stay.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></div><div class="principle-group" aria-hidden="true"><span>Digital content.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg><span>Physical impact.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg><span>Experiences that stay.</span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></div></div></div><span class="eyebrow">PART OF US</span><div class="clients-frame"><div class="clients-crop">${pic(imgs(data[2])[0],'Original ROOF client and collaborator logos',{ws:[700,1000,1800],sizes:'(max-width:960px) 100vw, 1000px'})}</div></div></section>`}
+function contact(){let lines=clean(data[3]);main.innerHTML=`<section class="contact-scene"><div class="contact-film">${video(data[3].videos[0],'preload="auto" data-eager')}</div><div class="contact-card"><span class="eyebrow">CONTACT</span><h1>Great things<br>start with a hello.</h1><p>${esc(lines[1].replace(/^5/,''))}</p><a class="contact-email" href="mailto:info@roofvideodesign.com">info@roofvideodesign.com <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><p>${esc(lines[3])}</p><div class="address-row"><address>Roof Videodesign<br>Via Rizzoli 4<br>40125 Bologna, Italy</address><a class="text-link map-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">Find us on the map <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div></div><div class="contact-description">${esc(lines[0])}</div></section>`}
+function project(id){let p=projects.find(x=>slug(x)===id);if(!p){main.innerHTML=head('404','Project not found.')+'<section class="section"><a class="text-link" href="#/works">Back to projects <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></section>';return}let lines=clean(p),ci=lines.findIndex(x=>x.toLowerCase()==='credits'),body=lines.slice(2,ci<0?undefined:ci),credits=ci<0?[]:lines.slice(ci+1).filter(x=>x.toLowerCase()!=='credits'),vs=mp4(p),yt=p.videos.filter(x=>x&&x.includes('youtube.com'));let next=projects[(projects.indexOf(p)+1)%projects.length];main.innerHTML=`<section class="project-cover"><div class="project-cover-media">${vs[0]?video(vs[0],`preload="auto" data-eager poster="${esc(posterUrl(p))}"`):pic(poster(p),names(p),{ws:[800,1400,2000],attrs:'fetchpriority="high"'})}</div><div class="project-cover-caption"><a class="back" href="#/works">← All projects</a><span class="eyebrow">${esc(category(p))}</span><h1>${esc(names(p))}</h1><p>${esc(lines[1])}</p></div><a href="#project-details" class="read-project" aria-label="PROJECT NOTES">↓</a></section><section class="project-content" id="project-details"><aside><span class="eyebrow">PROJECT NOTES</span><h2>${esc(body.shift()||category(p))}</h2><div class="cx-credits"><span class="eyebrow">CREDITS</span>${paragraphs(credits)}</div></aside><div class="project-narrative">${paragraphs(body)}${id==='bosch'?`<a class="text-link" href="${esc(p.links.find(l=>l.text==='Click Here')?.url||'https://www.roofvideodesign.com/project/bosch/')}" target="_blank" rel="noopener">Visit the virtual tour <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>`:''}<div class="project-gallery">${imgs(p).map((src,i)=>`<button data-image="${esc(src)}" aria-label="Enlarge ${esc(names(p))} image ${i+1}">${pic(src,names(p)+' — image '+(i+1),{ws:[700,1200,2000],sizes:'(max-width:760px) 92vw, 60vw'})}</button>`).join('')}</div>${vs.slice(1).map(src=>`<div class="extra-video">${video(src,`preload="none" poster="${esc(posterUrl(p))}"`)}</div>`).join('')}${yt.map(src=>{const id=(src.match(/embed\/([\w-]{6,})/)||[])[1];return id?`<a class="yt-link" href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener"><span class="yt-inner">Play original YouTube video <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg><small>Opens the video on YouTube in a new tab.</small></span></a>`:''}).join('')}</div></section><section class="section next-section"><span class="eyebrow">NEXT PROJECT</span><div class="section-head"><h2>${esc(names(next))}</h2><a class="project-button" href="${url(next)}">Explore <span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a></div></section>`;$('.read-project').onclick=e=>{e.preventDefault();$('#project-details').scrollIntoView({behavior:reduce?'instant':'smooth'})};document.querySelectorAll('[data-image]').forEach(b=>b.onclick=()=>openLightbox(b))}
+let nearObserver;
+function hoverVideos(){
+ if(observer)observer.disconnect();
+ if(nearObserver)nearObserver.disconnect();
+ // Start buffering a little before a video scrolls into view, so it is already moving when it appears.
+ nearObserver=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
+  const detail=v.closest('details');
+  if(isIntersecting&&(!detail||detail.open)&&v.preload!=='auto'&&(!v.dataset.wait||v.dataset.go)){v.preload='auto';nearObserver.unobserve(v)}
+ }),{rootMargin:'0px 0px 600px 0px'});
+ document.querySelectorAll('video:not(.film video)').forEach(v=>nearObserver.observe(v));
+ observer=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
+  const detail=v.closest('details');
+  if(isIntersecting&&(!detail||detail.open)&&!reduce&&!v.dataset.userPaused&&(!v.dataset.wait||v.dataset.go))v.play().catch(()=>{});else v.pause();
+ }),{threshold:.12});
+ document.querySelectorAll('video:not(.film video)').forEach(v=>{v.muted=true;observer.observe(v)});
+ document.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{d.querySelectorAll('video').forEach(v=>{if(d.open&&!reduce){v.preload='auto';v.play().catch(()=>{})}else v.pause()})}));
+}
+// Videos stay invisible (poster, photo or dark background shows) until real frames are moving: no black first frame.
+document.addEventListener('playing',e=>{if(e.target.tagName==='VIDEO')e.target.classList.add('is-playing')},true);
+// Some phones (e.g. iOS low-power mode) block autoplay: start visible videos on the first touch instead of showing controls.
+const kick=()=>document.querySelectorAll('video').forEach(v=>{const r=v.getBoundingClientRect(),d=v.closest('details'),f=v.closest('.film');if(v.paused&&!reduce&&r.bottom>0&&r.top<innerHeight&&(!d||d.open)&&(!f||f.classList.contains('active')))v.play().catch(()=>{})});
+['touchstart','pointerdown'].forEach(t=>document.addEventListener(t,kick,{passive:true,once:true}));
+function render(){if(location.hash==='#main'&&main.children.length){main.focus();return}if(location.hash==='#selected'&&main.children.length){document.getElementById('selected')?.scrollIntoView();return}if(scrollHandler)window.removeEventListener('scroll',scrollHandler);document.querySelectorAll('video').forEach(v=>v.pause());let path=location.hash.replace(/^#\/?/,'').split('/');if(['main','selected'].includes(path[0]))path=[''];$('nav').classList.remove('open');$('#menu').setAttribute('aria-expanded','false');if(!path[0])home();else if(path[0]==='works')works();else if(path[0]==='about')about();else if(path[0]==='contacts')contact();else if(path[0]==='services'){main.innerHTML=head('WHAT WE DO','We love<br>what we do.')+`<section class="section" style="padding-top:15px">${serviceList()}</section>`+video(data[1].videos[0],'preload="none" class="wide-video"')}else if(path[0]==='project')project(path[1]);else main.innerHTML=head('404','Page not found.');adoptPreloaded();chainWaiting();document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('active',a.hash===location.hash));hoverVideos();window.scrollTo({top:0,behavior:'instant'});document.title=(path[0]?path[0].charAt(0).toUpperCase()+path[0].slice(1)+' — ':'')+'ROOF | We love what we do';main.setAttribute('tabindex','-1');main.focus({preventScroll:true});if(window.gsap&&!reduce)gsap.fromTo('.page-head > *',{y:25,opacity:0},{y:0,opacity:1,duration:.7,stagger:.08,ease:'power3.out'})}
+$('#menu').onclick=()=>{let open=$('nav').classList.toggle('open');$('#menu').setAttribute('aria-expanded',open)};window.addEventListener('hashchange',()=>pageTransition());data=[{"path": "works/", "text": "What we create\nScorpions\nNOTCH REAL TIME LIVE FX\nsee more\nIntelligent Music Project\nVIDEO CONTENT CREATION\nsee more\nSolana\nINTERACTIVE INSTALLATION\nsee more\nSalmo\nVIDEO CONTENT CREATION & NOTCH DESIGN\nsee more\nBe You\n3D AND ANIMATION\nsee more\nBosch\n3D MODELLING AND XR/VR ENVIROMENTS\nsee more\nTheGiornalisti\nVIDEO CONTENT CREATION\nsee more\nCAMST\n3D MODELLING AND XR/VR ENVIROMENTS\nsee more\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Roof-About_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-home-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Breakpoint21-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Flop-Tour-Notch-Design-2022-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/04/ROOF_Be-You_Projects_Background-Works-1.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Bologna_GoodScenes-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Video-Ingresso-Camst-Header.mp4"], "links": [{"url": "https://www.roofvideodesign.com/project/scorpions/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/intelligent-music-project/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/solana/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/salmo/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/be-you/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/bosch/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/thegiornalisti/", "text": "see more"}, {"url": "https://www.roofvideodesign.com/project/camst/", "text": "see more"}, {"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "services/", "text": "we love what we do\nVIDEO CONTENT CREATION\nWe produce creative and dynamic content that utilizes advanced techniques in motion graphics, computer-generated imagery (CGI), and cinematography to captivate and inspire our audience.\nsee our work for  INTELLIGENT MUSIC PROJECT\nREAL TIME EFFECTS\nOur team seamlessly integrates Imag fx with your media servers and setups, enabling us to provide live interactions with instruments, 3D imagery, and low-latency live feeds in real-time. We can't wait to wow you at our next show!\nsee our work for SALMO\n3D content\nWe create 3D elements and environments. Using advanced technology and software, we aim to help our clients to visualize their vision and develope their imaginery in a innovative tridimensional approach.\nsee our work for BE YOU\nINTERACTIVE\nOur team of professionals provides comprehensive design and technical support services to enhance the interactivity to your video installation. With extensive knowledge and expertise, we guide you through creation, configuration, and optimization to meet the highest standards.\nsee our work for SOLANA LABS\n3D MODELLING AND XR/VR ENVIRONMENTS\nWe create 3D objects and environments that can be experienced in both physical and virtual realms. Using advanced technology and software, we aim to seamlessly integrate real-world elements to enhance the user's experience. Our team is dedicated to delivering high-quality and immersive designs through a rigorous process of prototyping, refinement, and optimization.\nsee our work for CAMST\nVIDEO PLAYBACK SOLUTIONS\nOur skilled team offers expert services in show direction, VJ operations, using cutting-edge technologies such as Notch, Arena, and Pixera, Vertex and D3. With decades of experience, we produce exceptional results by combining traditional \"on hand\" methods with modern technologies.\nsee our work for THE GIORNALISTI\nNFT & AI\nWe produce web3-based design, NFT art and collections, and AI design services, prioritizing innovation and high-quality service. Our passion for creativity, problem-solving and our project management approach emphasizes collaboration and attention to details. driving to exceptional results.\nsee our work for SOLANA LABS\nGAME DEVELOPMENT\nOur role as a creative studio is central to creating compelling gaming experiences. We act as the driving force behind the conceptualization, design, and execution of innovative gameplay mechanics, captivating narratives, immersive audiovisual elements.\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Roof-Seo-Services_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Video-Ingresso-Camst-Header.mp4"], "links": [{"url": "https://www.roofvideodesign.com/project/intelligent-music-project/", "text": "see our work for  INTELLIGENT MUSIC PROJECT"}, {"url": "https://www.roofvideodesign.com/project/salmo/", "text": "see our work for SALMO"}, {"url": "https://www.roofvideodesign.com/project/be-you/", "text": "see our work for BE YOU"}, {"url": "https://www.roofvideodesign.com/project/solana/", "text": "see our work for SOLANA LABS"}, {"url": "https://www.roofvideodesign.com/project/camst/", "text": "see our work for CAMST"}, {"url": "https://www.roofvideodesign.com/project/thegiornalisti/", "text": "see our work for THE GIORNALISTI"}, {"url": "https://www.roofvideodesign.com/project/solana-labs/", "text": "see our work for SOLANA LABS"}, {"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "about/", "text": "ROOF\nis a digital content creation studio that specializes in designing high-quality video content and 3D environments for live events.\nWe work on a wide range of projects, including live concerts, theaters, TV productions, fashion shows, cultural and corporate events, interactive installations, and XR productions.\nOur team follows a rigorous process that includes designing and projecting content from scratch, and overseeing the final production stage. We are committed to delivering exceptional results by providing innovative and creative solutions that engage and captivate audiences. Our goal is to provide a unique and memorable experience that exceeds our clients’ expectations, and we are dedicated to achieving this through our unparalleled expertise, attention to detail, and commitment to excellence.\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Loghi-Clienti_Loghi-Clienti_png.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Loghi-Clienti_Loghi-Clienti_png.png?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Roof-About_small-short.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "contacts/", "text": "Our global company, headquartered in Bologna, Italy, delivers high-quality services and products to clients worldwide through a network of partners. We maintain rigorous standards to ensure top-tier quality and customer satisfaction, regardless of location. Thank you for choosing us as your partner in success.\n5For any inquiries, careers opportunities just drop us an email at:\ninfo@roofvideodesign.com\nIf you’re around in Bologna take a closer look at our homebase:\nRoof Videodesign\nVia Rizzoli 4 40125 Bologna Italy\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/05/Roof_Contacts-2.mp4"], "links": [{"url": "mailto:info@roofvideodesign.com", "text": "info@roofvideodesign.com"}, {"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/scorpions/", "text": "Scorpions\nRock Believer World Tour\nRock believer Tour\nNotch real time live FX\nWe created 3d objects and element that were rendered live thru D3 during the show including sound reactive elements\nManfred Nikitser, historical Scorpions light designer contacted us with a request, to develop\nrealtime content in Notch\n.\nNotch is a very versatile software and allowed us to create all the realtime audio reactive graphics we needed for the show.\nWe focused especially on the guitar and drum solo were we extracted the frequencies used to generate and deform realtime gfx.\ncredits\nShow and Light designer: Manfred Nikitser\nNotch designers: Lorenzo Venturini, Mikkel Garro Martinsen\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-29_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-29_small.jpg?resize=1080%2C810&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-26_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-26_small.jpg?resize=1080%2C721&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-27_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-27_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-28_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-Roof-28_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-home-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-header-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-d3-Roof_small-short.mp4", null, "https://www.youtube.com/embed/3Ntkp46Tb_I?feature=oembed"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/intelligent-music-project/", "text": "Intelligent Music Project\nEurovision song contest 2022\nContent Creation Eurovision Song Contest 2022\nContent Creation on the visuals of Bulgarian proposition of Eurovision Song Contest in Turin 2022.\n“Intelligent Music Project” with the song “Intention”.\nWe had the pleasure to work on the visuals of Bulgarian proposition\n“Intelligent Music Project”\nfor the Eurovision Song Contest in Turin 2022.\nFollowing the art direction of\nAndrea Celi,\nwe created al the visual content timecode with the music of the band.\nThe visual impact should really be great as the Eurovision Song Contest focuses a lot of the visual aspect of the performance.\nVisual content complemented the music and created a cohesive and dynamic performance. The visual content also added another layer of storytelling to the performance and enhanced the emotional impact of the music.\nThe visuals and music together created a complete sensory experience for the audience.\ncredits\nDirection: Andrea Celi\nContent creation: Mikkel Garro Martinsen, Paolo Quintozzi\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-1.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-1.jpg?resize=957%2C528&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-9.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-9.jpg?resize=836%2C523&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-8.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-8.jpg?resize=963%2C513&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-7.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-7.jpg?resize=959%2C529&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-6.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-6.jpg?resize=942%2C535&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-5.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-5.jpg?resize=967%2C534&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-4.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-4.jpg?resize=960%2C534&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-2.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022-2.jpg?resize=957%2C526&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Intelligent-Music-Project-Eurovision-2022_small.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/solana/", "text": "Solana\nBreakpoint Lisbon 2021\nINTERACTIVE DATA VISUALIZATION VIDEO INSTALLATION\nBREAKPOINT LISBON 2021\nFor the Solana BREAKPOINT conference of 2021, we made some real-time data display projections that took different data from solanabeach.io, using JS.\nWe developed visual displays of real-time data for the Solana BREAKPOINT conference and used JavaScript to access data from solanabeach.io and create dynamic visuals that changed in real-time as the relative data changed.\nWe displayed the height of slots, the total transactions and new validators real-time.\nThe installation was displayed thru an interactive installation and a multi-projection in the main event area at Solana’s BREAKPOINT meeting 2021.\nWithin Notch we made a complex particles system that mixed 2D particles, texts, cloner and 3D geometry; for the interaction part, some vortex and effectors activated when the Kinect found a hand of the player, so the people were able to play and move the particles and the transaction around the blockchain.\nThe stand-alone application was compiled to run in background and send the video signal, with NDI, to Resolume Arena media-server, who has split it to the pixelmap, managed the sound design and added the graphics on the ledwall at the entrance.\ncredits\nStudio: ROOF Videodesign\nConcept: Mikkel Garro Martinsen, Fausto Fasan, Lorenzo Venturini, Ryan Shea, Ross Cohen\nResearch: Fausto Fasan\nJavaScript Developer: Luca Corsetti\nNotch Designer: Lorenzo Venturini\nService: Europalco\nPandoras Box Operator: Nélio Lima\nClient: Solana\nEvent: Breakpoint\nLocation: LX Factory – R. Rodrigues de Faria 103, 1300-501 Lisboa, Portugal\nDate: November 2021\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-2_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-2_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-3_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-3_small.jpg?resize=1080%2C607&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-4_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-4_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-5_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-5_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-6_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-6_small.jpg?resize=1080%2C609&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-7_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Roof-7_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Breakpoint21-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Dataviz-Roof_small.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/salmo/", "text": "Salmo\nFlop tour 2023\nVideo Content Creation & Notch design\nImag and Notch special effects and in camera creation\nContent Creation | Notch design | Media Management\nSalmo’s production team approached us to team up with\nBlearred\n(Stage&Light design) and\nReef Studio\n(Art Direction and Content creation) to create and execute the most astonishing live show of 2023.\nWe developed different IMAGS and effects for each of the three parts of the show three parts – the opening, the acoustic part, and the DJ set – to create a varied and engaging visual experience for the audience.\nWe used Notch, a powerful software tool that allowed us to generate and manipulate visuals in real time, to create our live effects.\nTo control and run the show we used Resolume Arena, a software program designed specifically for live video performances.\nTo control both Resolume and Notch simultaneously, we used an AKAI APC40 MIDI controller. This allowed us to make adjustments on the fly, responding to changes in the music or the needs of the performance.\nOverall, it was a challenging and exciting project, and we are proud to have been a part of it.\ncredits\nStudio: ROOF Videodesign\nConcept: Blearred & Reef Studio\nProject Design: Mikkel Garro Martinsen\nService: STS comunication\nMedia-Server Operator: Paolo Quintozzi\nClient: VivoConcerti\nEvent: Salmo Flop Tour\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-01.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-01.jpg?resize=931%2C516&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-02.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-02.jpg?resize=1070%2C587&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-03.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-03.jpg?resize=1080%2C601&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-04.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-04.jpg?resize=1075%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-05.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-05.jpg?resize=1080%2C599&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-06.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-06.jpg?resize=1080%2C598&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-07.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-07.jpg?resize=925%2C513&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-08.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-08.jpg?resize=936%2C513&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-09.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-09.jpg?resize=916%2C512&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-10.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-10.jpg?resize=923%2C515&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-11.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-11.jpg?resize=923%2C521&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-12.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Roof-12.jpg?resize=912%2C497&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Flop-Tour-Notch-Design-2022-Roof_small-short.mp4", null, "https://www.youtube.com/embed/5cZ0bhz9twY?feature=oembed", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Salmo-Flop-Tour-Notch-Design-2022-Roof_small.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/be-you/", "text": "Be You\nTV spot 2020\n3D Content Creation & Animation for National Tv spot\n3D CREATIONS AND ANIMATION\nMarco Mazzoni approached us to develope the whole 2020 TV campaign for the brand BE YOU.\nWe developed then the whole imaginery, neccessary for the project including modelling, texturing lighting and animating the whole shots.\nWe then delivered the different takes they needed for the TV campaign.\ncredits\n3D and animation: ROOF Videodesign\nArt Direction: Alessio Azzolini\nSpecial Thanks: Marco Mazzoni\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-1.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-1.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-2.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-2.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-4.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-4.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-3.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-3.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-5.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-5.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-6.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-6.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-7.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-7.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-9.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-9.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-10.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-10.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-12.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Be-You-12.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/04/ROOF_Be-You_Projects_Background-Works-1.mp4", null, "https://www.youtube.com/embed/qIchfLH1uv4?feature=oembed", "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Be-you_Roof_1.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/bosch/", "text": "Bosch\n3D Virtual construction site\n3D content creation | Virtual Construction Site\nWe created a virtual construction site for Bosch, where we inserted all the 3D objects we had photoscanned. We designed some environments where these 3D objects fit in, and included trainers to guide users on how to use them. The environments can be navigated in panoramic 360 degrees\nVisit The Virtual Tour\nClick Here\nUsing 3D scanning technology, we were able to create digital representations of real-world objects and insert them into a virtual construction site for Bosch. These objects were designed to be true to life, providing an accurate representation of the physical items they were based on.\nTo make the virtual construction site more engaging, we created a number of different environments for the objects to be placed in. These environments were designed to be visually interesting and also relevant to the objects being used. For example, we might have a scaffolding environment for tools and equipment used in building construction.\nTo help users get the most out of the virtual construction site, we included trainers within each environment. These trainers were virtual assistants who could guide users through the process of using each object, providing helpful tips and instructions along the way.\nFinally, we made the virtual construction site easily navigable through panoramic 360-degree views. This allowed users to explore the environments and objects in detail, getting a real sense of how everything worked together within the site.\nOverall, the virtual construction site we created for Bosch was an immersive and educational tool that allowed users to learn about construction equipment and tools in a hands-on, interactive way.\ncredits\nStudio: ROOF Videodesign\nAgency : Viva events\nConcept: Luca Zanella\n3d Designers: Marta Negrari, Luca Zanella\nVideo Designer: Riccardo Mengoli\nClient: Bosch\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Bosch-Roof-02.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Bosch-Roof-02.jpg?resize=1080%2C688&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_2.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_2.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_4.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_4.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_3.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/05/Roof-Bosch-cam_3.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": [], "links": [{"url": "https://cantierevirtualebosch-professional.it/", "text": "Click Here"}, {"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/thegiornalisti/", "text": "TheGiornalisti\nLove tour 2019\nLove TOur 2019\nArt Direction, Content design and Show Management\nTHE GIORNALISTI Love Tour 2019\nArt Direction, Content design and Show Management\nAs the director of visuals and designer of The Giornalisti’s Love Tour 2019, we had to consider various factors to create a unique and engaging experience for the audience. So we had to work closely with lighting effects and design, laser, and special effects to create an immersive and memorable show.\nOverall, it takes a lot of creativity, hard work, and attention to detail to create an unforgettable music tour.\ncredits\ncredits\nStudio: ROOF Videodesign\nConcept: Lemon&Pepper\nProject Design: Mikkel Garro Martinsen\ntMotion Designer: Luca Giovannardi\nService: STS comunication\nMedia-Server Operator: Mikkel Garro | Paolo Quintozzi\nClient: Vivo Concerti\nEvent: The Giornalisti Love Tour 2019\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-2_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-2_small.jpg?resize=1080%2C572&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-3_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-3_small.jpg?resize=631%2C352&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-4_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-4_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-5_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-5_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-6_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-6_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-7_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-7_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-8_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-8_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-9_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-9_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-10_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-10_small.jpg?resize=1080%2C631&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-1_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Roof-1_small.jpg?resize=1080%2C720&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Bologna_GoodScenes-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/TheGiornalisti-Tour-Roof_small.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/camst/", "text": "Camst\nInnovation day 2021\n3D environment Creation & Xr streaming Event\n3D Environment Cration and XR realtime streaming Event through Notch\nWe move through the streets and squares of a virtual city, where the colors and communication icons of the Camst event dominate. Thanks to video animations, the buildings are tinged with bright colors and likewise the street furniture and the objects that compose it.\nWe move through different urban environments (streets, squares, generic places) which are at the same time a frame and an introduction to the topic of the moment (start-up presentation).\nThe event presenter himself is completely immersed in the urban virtual space, in which areas dedicated to connections with guests or to containing images, videos and slides will be designed.\ncredits\n3D Environment & Xr Event: ROOF Videodesign\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-1.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-1.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-2.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-2.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-3.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-3.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-4.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-4.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-5.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-5.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-6.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-6.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-7.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-7.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-8.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Still-8.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Video-Ingresso-Camst-Header.mp4", null, "https://www.youtube.com/embed/yaNtrb9Wm7E?feature=oembed", "https://www.roofvideodesign.com/wp-content/uploads/2023/04/Roof-Camst-Innovation-Call-BTS.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}, {"path": "project/solana-labs/", "text": "Solana Labs\nNFT designs for HH World Tour 2022\nNFT Designs\nfor the\nHacker House world tour 2022\nRoofvidedesign partnered with Solana Lab to bring our experticies to Solana events worldwide for their now famous Hackerhouses World Tour, happening around the globe during 2022.\nFor the Solana HACKERHOUSE worldtour of 2022, we made some unique designs for some NFT collections 25 unique designs for each HH, powered with NFC tecnology with a proof of attendance.\nRoofprovidedesign is proud to show you partnership with Solana Lab for the Hackerhouses World Tour of 22, a series of events taking place worldwide throughout the year. As a reputable design and development firm, our expertise will be instrumental in bringing this global event to fruition.\nOur team has dedicated significant time and effort to craft unique and captivating NFT collections, each tailored to a specific Hacker House location. The collections feature a diverse array of designs, ranging from rare collectibles to more common pieces. This ensures that there is something for everyone to enjoy.\nThe Hackerhouses World Tour presents a tremendous opportunity for builders to collaborate with like-minded peers, engage in innovative projects, and learn from distinguished experts in the Solana ecosystem. We are proud to be part of this initiative and are committed to ensuring its success.\nOur work on these NFT collections\nundoubtedly generated enthusiasm and engagement within the Solana community. As such, we invite you to stay tuned for further updates on this exciting partnership between Roofprovidedesign and Solana Lab for the Hackerhouses World Tour.\ncredits\nStudio: ROOF Videodesign\nConcept: Luca Zanella\n3D Designer: Luca Zanella, Christoph Grigoletti, Marta Negrari, Riccardo Mengoli, Giulio Faggiani\nNotch Designer: Lorenzo Venturini\nClient: Solana\nEvent: Hacker Houses 2022\nLocation: WorldWide Tour 22\nFollow\nFollow\nFollow\n© all content is copyright of RVD srl 2023\nPrivacy Policy\n-\nCookie Policy\n-\nTerms and Conditions\nCoded by\nRedlightstudio.it", "images": [{"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-11_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-11_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-10_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-10_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-9_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-9_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-8_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-8_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-7_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-7_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-6_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-6_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-5_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-5_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-4_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-4_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-3_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-3_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-2_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-2022-Roof-2_small.jpg?resize=1080%2C1080&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/03/NFT_Services-new_small.jpg", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/03/NFT_Services-new_small.jpg?resize=1080%2C608&ssl=1", "alt": ""}, {"src": "https://www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png", "alt": ""}, {"src": "https://i0.wp.com/www.roofvideodesign.com/wp-content/uploads/2023/02/ROOF-LOGO-1.png?resize=512%2C273", "alt": ""}], "videos": ["https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-HH-NFT-22-Roof_small-short.mp4", "https://www.roofvideodesign.com/wp-content/uploads/2023/03/Solana-Post-Video_small.mp4"], "links": [{"url": "https://it-it.facebook.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.youtube.com/@roofvideodesign7410", "text": "Follow"}, {"url": "https://www.instagram.com/roofvideodesign/", "text": "Follow"}, {"url": "https://www.iubenda.com/privacy-policy/74691616", "text": "Privacy Policy"}, {"url": "https://www.iubenda.com/privacy-policy/74691616/cookie-policy", "text": "Cookie Policy"}, {"url": "https://www.iubenda.com/terms-and-conditions/74691616", "text": "Terms and Conditions"}, {"url": "https://www.Redlightstudio.it", "text": "Redlightstudio.it"}]}];projects=data.filter(p=>p.path.startsWith('project/'));render();
+function brandAmbient(){const intro=main.querySelector('.brand-intro');if(!intro||reduce||!matchMedia('(max-width:760px)').matches||intro.querySelector('.brand-ambient'))return;
+ const amb=document.createElement('canvas');amb.className='brand-ambient';amb.width=18;amb.height=32;amb.setAttribute('aria-hidden','true');intro.prepend(amb);
+ const ctx=amb.getContext('2d');let skip=0;
+ const draw=()=>{if(!amb.isConnected)return;requestAnimationFrame(draw);if(++skip%2||scrollY>innerHeight)return;const v=intro.querySelector('video');if(!v||v.readyState<2)return;const vw=v.videoWidth,vh=v.videoHeight,sw=vh*18/32;try{ctx.drawImage(v,(vw-sw)/2,0,sw,vh,0,0,18,32)}catch(_){}};draw()}
+brandAmbient();new MutationObserver(brandAmbient).observe(main,{childList:true});
+/* Lightbox: the photo grows out of its thumbnail into a framed viewer, and settles back into it on close. */
+const lb=$('#lightbox'),lbFrame=lb.querySelector('.lb-frame'),lbImg=lbFrame.querySelector('img');let lbThumb=null,lbBusy=false;
+// Locking the page scroll must not change its width (the scrollbar gap is kept), or the thumbnail would move under the closing photo.
+function lockScroll(on){const html=document.documentElement;if(on){html.style.paddingRight=(innerWidth-html.clientWidth)+'px';html.classList.add('lb-lock')}else{html.classList.remove('lb-lock');html.style.paddingRight=''}}
+function lbRect(el){const r=el.getBoundingClientRect();return{left:r.left,top:r.top,width:r.width,height:r.height}}
+function openLightbox(button){
+ if(lbBusy||lb.open)return;const thumb=button.querySelector('img'),small=innerWidth<=760;lbThumb=button;
+ const ratio=(thumb.naturalWidth&&thumb.naturalHeight)?thumb.naturalWidth/thumb.naturalHeight:1.5;
+ const maxW=innerWidth*(small?.92:.84),maxH=innerHeight*(small?.7:.78);let w=maxW,h=w/ratio;if(h>maxH){h=maxH;w=h*ratio}
+ const end={left:(innerWidth-w)/2,top:(innerHeight-h)/2-(small?10:14),width:w,height:h};
+ lbImg.removeAttribute('srcset');lbImg.src=thumb.currentSrc||thumb.src;lbImg.alt=thumb.alt;
+ // Sharper copy swaps in silently once downloaded.
+ const hi=new Image();hi.src=cdn(button.dataset.image,2000);hi.onload=()=>{if(lb.open&&lbThumb===button)lbImg.src=hi.src};
+ const all=[...main.querySelectorAll('[data-image]')];lb.querySelector('.lb-title').textContent=main.querySelector('.project-cover-caption h1')?.textContent||'';lb.querySelector('.lb-count').textContent=String(all.indexOf(button)+1).padStart(2,'0')+' / '+String(all.length).padStart(2,'0');
+ lb.showModal();lockScroll(true);
+ if(reduce||!window.gsap){Object.assign(lbFrame.style,{left:end.left+'px',top:end.top+'px',width:end.width+'px',height:end.height+'px'});return}
+ const start=lbRect(button);button.style.visibility='hidden';lbBusy=true;
+ gsap.timeline({onComplete(){lbBusy=false}})
+  .fromTo(lb.querySelector('.lb-bg'),{opacity:0},{opacity:1,duration:.55,ease:'power2.out'},0)
+  .fromTo(lbFrame,{...start,opacity:1,borderRadius:0,rotation:-2,boxShadow:'0 0 0 rgba(0,0,0,0)'},{...end,borderRadius:22,rotation:0,boxShadow:'0 50px 140px rgba(0,0,0,.7)',duration:.85,ease:'expo.out'},0)
+  .fromTo(lbImg,{scale:1.18},{scale:1,duration:1.1,ease:'expo.out'},0)
+  .fromTo(['#lightbox .lb-meta','#lightbox .lb-close'],{opacity:0,y:18},{opacity:1,y:0,duration:.6,stagger:.08,ease:'power3.out'},.3);
+}
+function closeLightbox(){
+ if(!lb.open||lbBusy)return;const button=lbThumb;
+ const done=()=>{lb.close();lockScroll(false);if(button)button.style.visibility='';if(window.gsap)gsap.set(lbFrame,{opacity:1});lbBusy=false};
+ if(reduce||!button||!window.gsap){done();return}
+ lbBusy=true;const back=lbRect(button),radius=parseFloat(getComputedStyle(button).borderTopLeftRadius)||0;
+ // The frame glides back and settles exactly like the thumbnail (no tilt, no zoom left over),
+ // then the thumbnail is revealed underneath and the frame dissolves into it: no final jump.
+ gsap.timeline({onComplete:done})
+  .to(['#lightbox .lb-close','#lightbox .lb-meta'],{opacity:0,y:12,duration:.25,ease:'power2.in'},0)
+  .to(lbImg,{keyframes:[{scale:1.06,duration:.35,ease:'power2.out'},{scale:1,duration:.5,ease:'power3.inOut'}]},0)
+  .to(lbFrame,{...back,borderRadius:radius,boxShadow:'0 0 0 rgba(0,0,0,0)',duration:.85,ease:'expo.inOut'},0)
+  .to(lbFrame,{keyframes:[{rotation:1.5,duration:.4,ease:'sine.inOut'},{rotation:0,duration:.45,ease:'sine.inOut'}]},0)
+  .to(lb.querySelector('.lb-bg'),{opacity:0,duration:.65,ease:'power2.inOut'},.12)
+  .call(()=>{button.style.visibility=''},null,.72)
+  .to(lbFrame,{opacity:0,duration:.18,ease:'power1.out'},.8);
+}
+lb.querySelector('.lb-close').onclick=closeLightbox;lb.querySelector('.lb-bg').onclick=closeLightbox;lb.addEventListener('cancel',e=>{e.preventDefault();closeLightbox()});
+/* Page change, no loader: while the current page dissolves, the clips of the next page's first screen are already
+   downloading (one after the other, the first one has priority); the new page fades in with them ready and playing. */
+const preHold=document.createElement('div');preHold.setAttribute('aria-hidden','true');preHold.style.cssText='position:fixed;left:0;bottom:0;width:2px;height:2px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1';document.body.append(preHold);
+const LOGO_MP4='https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4';
+var preloaded=[]; // var: render() runs once before this line, on first load
+function firstVideos(hash){const p=hash.replace(/^#\/?/,'').split('/');
+ if(!p[0])return [LOGO_MP4];
+ if(p[0]==='about')return [LOGO_MP4];
+ if(p[0]==='contacts')return [data[3].videos[0]];
+ if(p[0]==='project'){const pr=projects.find(x=>slug(x)===p[1]);return pr&&mp4(pr)[0]?[mp4(pr)[0]]:[]}
+ return []}
+function preloadSeq(urls){
+ preloaded.forEach(v=>v.remove());preloaded=urls.map(src=>{src=vsrc(src);const v=document.createElement('video');v.muted=true;v.loop=true;v.playsInline=true;['muted','playsinline','disablepictureinpicture','disableremoteplayback'].forEach(a=>v.setAttribute(a,''));v.preload='none';v.dataset.src=src;preHold.append(v);return v});
+ const start=i=>{const v=preloaded[i];if(!v)return;v.preload='auto';v.src=v.dataset.src;v.play().catch(()=>{});const next=()=>start(i+1);if(preloaded[i+1]){v.addEventListener('canplay',next,{once:true});setTimeout(()=>{if(!preloaded[i+1]||preloaded[i+1].src)return;next()},2500)}};
+ start(0);return preloaded}
+function adoptPreloaded(){if(!preloaded||!preloaded.length)return;main.querySelectorAll('video').forEach(v=>{const src=v.getAttribute('src');const i=preloaded.findIndex(p=>p.dataset.src===src&&p.src);if(i<0)return;const p=preloaded.splice(i,1)[0],playing=p.classList.contains('is-playing');[...v.attributes].forEach(a=>{if(!['src','preload'].includes(a.name))p.setAttribute(a.name,a.value)});p.removeAttribute('data-src');p.classList.toggle('is-playing',playing);v.replaceWith(p);p.play().catch(()=>{})});preloaded.forEach(v=>v.remove());preloaded=[]}
+function chainWaiting(){const waiters=[...main.querySelectorAll('video[data-wait]')];if(!waiters.length)return;const first=main.querySelector('video:not([data-wait])');const go=()=>waiters.forEach(w=>{if(w.dataset.go)return;w.dataset.go='1';w.preload='auto';const r=w.getBoundingClientRect();if(r.top<innerHeight&&r.bottom>0)w.play().catch(()=>{})});if(!first||first.readyState>=3)go();else{first.addEventListener('canplay',go,{once:true});setTimeout(go,4000)}}
+let navToken=0;
+async function pageTransition(){
+ if(routeFlight){landFlight();return}
+ if(location.hash==='#main'||location.hash==='#selected'||reduce||!window.gsap){render();return}
+ const tok=++navToken,small=innerWidth<=760,parts=[main,document.querySelector('footer')];
+ const pre=preloadSeq(firstVideos(location.hash)),t0=performance.now(),max=/^#\/project\//.test(location.hash)?(small?950:650):(small?2600:1300); // a project cover shows its poster at once: no long wait
+ gsap.killTweensOf(parts);
+ // the current page dissolves slowly while the next page's clips download
+ gsap.to(parts,{opacity:.12,duration:small?.9:.6,ease:'power1.inOut'});
+ await new Promise(res=>{const chk=()=>{const t=performance.now()-t0;if(tok!==navToken||t>=max||(t>=(small?.9:.6)*1000&&pre.every(v=>v.readyState>=3||v.error)))res();else setTimeout(chk,60)};chk()});
+ if(tok!==navToken)return;
+ await gsap.to(parts,{opacity:0,duration:.15,ease:'power1.in'});
+ if(tok!==navToken)return;
+  render();gsap.set(parts,{opacity:0});
+  // Project to project (e.g. "Next project"): the cover opens up smoothly instead of just appearing.
+  const cover=main.querySelector('.project-cover-media');
+  if(cover){const inner=cover.firstElementChild,texts=main.querySelectorAll('.project-cover-caption>*,.read-project');
+   gsap.fromTo(cover,{clipPath:'inset(10% 12% 10% 12% round 28px)'},{clipPath:'inset(0% 0% 0% 0% round 0px)',duration:1.3,ease:'power3.inOut',clearProps:'clipPath'});
+   if(inner)gsap.fromTo(inner,{scale:1.18},{scale:1,duration:1.6,ease:'expo.out',clearProps:'transform'});
+   gsap.fromTo(texts,{y:30,opacity:0},{y:0,opacity:1,duration:.8,stagger:.08,delay:.45,ease:'power3.out',clearProps:'transform,opacity'})}
+ gsap.to(parts,{opacity:1,duration:small?.6:.5,ease:'power2.out',clearProps:'opacity'});
+ gsap.fromTo('.page-head > *',{y:25,opacity:0},{y:0,opacity:1,duration:.7,stagger:.08,ease:'power3.out',overwrite:true});
+}
 
-/* ---------- language ---------- */
-Object.assign(IT, {
-  'Home': 'Home', 'Skip intro': 'Salta intro', 'SCROLL': 'SCORRI', 'NOW ENTERING': 'STAI ENTRANDO IN', 'FLOOR': 'PIANO',
-  'ENTER THE BUILDING': 'ENTRA NEL PALAZZO', 'STEP INSIDE': 'ENTRA', 'THE ROOFTOP': 'IL TETTO', 'WHAT WE DO': 'COSA FACCIAMO',
-  'Open': 'Apri', 'Close': 'Chiudi', 'VIEW': 'GUARDA', 'Take me back to the top': 'Torna all’inizio', 'Write to us': 'Scrivici',
-  'SAY HELLO': 'SCRIVICI', 'HOMEBASE': 'LA NOSTRA SEDE', 'EIGHT WAYS TO MOVE AN AUDIENCE': 'OTTO MODI PER EMOZIONARE IL PUBBLICO',
-  'SELECTED FRAMES': 'IMMAGINI SELEZIONATE', 'Opens the video on YouTube in a new tab.': 'Apre il video su YouTube in una nuova scheda.', 'IN MOTION': 'IN MOVIMENTO', 'Projects': 'Progetti', 'Contact': 'Contatti', 'Project': 'Progetto',
+/* Cards tilt toward the mouse with a soft glow (desktop only, as on Cinema). */
+// Driven by real mouse movement (pointerType), so it also works on laptops with a touch screen.
+if(!reduce){
+ main.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'&&e.pointerType!=='pen')return;const card=e.target.closest('.archive-card,.card');if(!card||routeFlight)return;const m=card.querySelector('.archive-media,.card-media');if(!m)return;m.classList.add('is-tilt');const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;m.style.transform=`perspective(950px) rotateX(${y*13}deg) rotateY(${-x*13}deg) translateZ(12px)`;m.style.setProperty('--glow-x',((x+.5)*100)+'%');m.style.setProperty('--glow-y',((y+.5)*100)+'%')});
+ main.addEventListener('pointerout',e=>{const card=e.target.closest('.archive-card,.card');if(card&&!card.contains(e.relatedTarget)){const m=card.querySelector('.archive-media,.card-media');if(m){m.style.transform='';m.classList.remove('is-tilt')}}});
+}
+/* Opening a project (Cinema): the clip leaves its card, flies over a dark veil and lands on the project cover, still playing. */
+let routeFlight=null;
+document.addEventListener('click',e=>{
+ const link=e.target.closest('a[href^="#/project/"]');
+ if(!link||routeFlight||reduce||!window.gsap||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||link.hash===location.hash)return;
+ const fromStage=link.id==='filmlink',box=fromStage?document.querySelector('.film.active'):link.querySelector('.card-media,.archive-media');
+ if(!box)return;
+ e.preventDefault();
+ const r=box.getBoundingClientRect(),veil=document.createElement('div'),shell=document.createElement('div');
+ veil.className='flight-veil';shell.className='flight-shell';
+ Object.assign(shell.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px',borderRadius:getComputedStyle(box).borderTopLeftRadius});
+ box.style.transform='';
+ const v=box.querySelector('video'),img=box.querySelector('img');let moved=null;
+ if(img)shell.append(img.cloneNode(true));else if(v&&v.poster){const im=new Image();im.src=v.poster;shell.append(im)}
+ if(v&&!v.paused&&v.readyState>=2){moved=v;shell.append(v);v.play().catch(()=>{})}
+ document.body.append(veil,shell);routeFlight={shell,veil,video:moved};
+ gsap.to(veil,{opacity:1,duration:.55,ease:'power2.out'});
+ // Desktop only: before flying, the clip drifts a little to the side opposite to where it lands (the cover is on the left).
+ const desk=innerWidth>760,dir=Math.sign(innerWidth*.28-(r.left+r.width/2))||-1;
+ if(fromStage){const tl=gsap.timeline({onComplete(){location.hash=link.hash}})
+  .to(shell,{scale:.68,borderRadius:28,transformPerspective:1100,rotationY:16,rotationX:5,duration:.65,ease:'power3.inOut'});
+  if(desk)tl.to(shell,{x:innerWidth*.12,y:-20,duration:.5,ease:'power2.inOut'})}
+ else{const tl=gsap.timeline({onComplete(){location.hash=link.hash}})
+  .to(shell,{scale:1.04,borderRadius:18,duration:.45,ease:'power2.out'});
+  if(desk)tl.to(shell,{x:-dir*Math.min(110,innerWidth*.07),y:-18,rotationY:-dir*9,rotationX:3,transformPerspective:1100,duration:.55,ease:'power2.inOut'},.12)}
 });
-let lang = 'en'; try { if (localStorage.getItem('roof-language') === 'it') lang = 'it'; } catch (_) {}
-const T = s => { if (lang !== 'it' || s == null) return s; const k = String(s).trim(); return IT[k] !== undefined ? IT[k] : s; };
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const E = s => esc(T(s));
-
-/* ---------- content helpers ---------- */
-const projects = D.filter(p => p.path.startsWith('project/'));
-const clean = p => p.text.split('\nFollow')[0].split('\n');
-const cdn = (src, w) => src.replace('https://www.roofvideodesign.com/', 'https://i0.wp.com/www.roofvideodesign.com/') + '?w=' + w + '&ssl=1';
-const imgs = p => p.images.filter(x => x.src && x.src.startsWith('https://www.roofvideodesign.com/') && !x.src.includes('ROOF-LOGO')).map(x => x.src);
-/* Phones: lighter copies of the clips (720p loops, 540p long films) shipped in media/m; desktop keeps the originals. */
-const MOBILE_CLIPS = new Set(['Be-you_Roof_1.mp4', 'Intelligent-Music-Project-Eurovision-2022_small-short.mp4', 'Intelligent-Music-Project-Eurovision-2022_small.mp4', 'ROOF-Logo-Animation-Home-_small-short.mp4', 'ROOF_Be-You_Projects_Background-Works-1.mp4', 'Roof-About_small-short.mp4', 'Roof-Camst-Innovation-Call-BTS.mp4', 'Roof-Seo-Services_small-short.mp4', 'Roof-Video-Ingresso-Camst-Header.mp4', 'Roof_Contacts-2.mp4', 'Salmo-Flop-Tour-Notch-Design-2022-Roof_small-short.mp4', 'Salmo-Flop-Tour-Notch-Design-2022-Roof_small.mp4', 'Scorpions-d3-Roof_small-short.mp4', 'Scorpions-header-Roof_small-short.mp4', 'Scorpions-home-Roof_small-short.mp4', 'Solana-Breakpoint21-Roof_small-short.mp4', 'Solana-Dataviz-Roof_small.mp4', 'Solana-HH-NFT-22-Roof_small-short.mp4', 'Solana-Post-Video_small.mp4', 'TheGiornalisti-Bologna_GoodScenes-Roof_small-short.mp4', 'TheGiornalisti-Tour-Roof_small.mp4']);
-const SMALL_SCREEN = matchMedia('(max-width:900px)').matches || (matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) < 820);
-const vsrc = s => { if (!SMALL_SCREEN || !s) return s; const n = String(s).split('/').pop(); return MOBILE_CLIPS.has(n) ? 'media/m/' + n : s; };
-const mp4 = p => p.videos.filter(x => x && x.endsWith('.mp4')).map(vsrc);
-const slug = p => p.path.split('/')[1];
-const types = ['Live visuals', 'Live visuals', 'Interactive', 'Live visuals', '3D & animation', 'XR & virtual', 'Live visuals', 'XR & virtual', '3D & animation'];
-const category = p => types[projects.indexOf(p)];
-const url = p => '#/project/' + slug(p);
-const names = p => clean(p)[0];
-const poster = p => imgs(p)[0] || '';
-const ARROW = '<svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>';
-const LOGO_VIDEO = 'https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4';
-const pad = n => String(n).padStart(2, '0');
-const split = text => { let i = 0; return String(text).split(' ').map(w => `<span class="w">${[...w].map(c => `<span class="c" style="--i:${i++}">${esc(c)}</span>`).join('')}</span>`).join(' '); };
-const words = text => String(text).split(' ').map(w => `<span class="word">${esc(w)}</span>`).join(' ');
-function services() { const l = clean(D[1]).slice(1), out = []; for (let i = 0; i < l.length;) { const name = l[i++], desc = l[i++]; let link = null; if (l[i] && l[i].startsWith('see our work')) link = l[i++]; out.push({ name, desc, link }); } return out; }
-const serviceProject = i => projects.find(p => slug(p) === ['intelligent-music-project', 'salmo', 'be-you', 'solana', 'camst', 'thegiornalisti', 'solana-labs'][i]);
-
-/* ---------- the building: one window per page / project ---------- */
-const winPos = [[1, 4], [0, 4], [2, 4], [1, 3], [0, 2], [2, 2], [1, 1], [0, 0], [2, 0]];
-const defs = [
-  { id: 'home', c: 1, r: 2, video: LOGO_VIDEO },
-  { id: 'works', c: 0, r: 3, video: 'https://www.roofvideodesign.com/wp-content/uploads/2023/03/Scorpions-header-Roof_small-short.mp4' },
-  { id: 'services', c: 2, r: 3, video: D[1].videos[0] },
-  { id: 'about', c: 0, r: 1, video: D[2].videos[0] },
-  { id: 'contacts', c: 2, r: 1, video: D[3].videos[0] },
-  ...projects.map((p, i) => ({ id: 'p:' + slug(p), c: winPos[i][0], r: winPos[i][1], video: mp4(p)[0] || null, poster: poster(p) ? cdn(poster(p), 640) : null })),
-  { id: 'spare', c: 1, r: 0, video: null },
-];
-defs.forEach(d => { if (d.video) d.video = vsrc(d.video); });   // window clips: light copies on phones too
-const routeOf = () => {
-  const h = location.hash.replace(/^#\/?/, '').split('/');
-  if (!h[0] || h[0] === 'main') return { name: 'home', win: 'home', key: 'home' };
-  if (h[0] === 'project') { const p = projects.find(x => slug(x) === h[1]); if (p) return { name: 'project', win: 'p:' + h[1], p, key: 'p:' + h[1] }; }
-  if (['works', 'services', 'about', 'contacts'].includes(h[0])) return { name: h[0], win: h[0], key: h[0] };
-  return { name: '404', win: 'spare', key: '404' };
-};
-const routeLabel = r => r.name === 'home' ? 'Home' : r.name === 'works' ? 'What we create' : r.name === 'services' ? 'Services' : r.name === 'about' ? 'About' : r.name === 'contacts' ? "Let's talk" : r.p ? names(r.p) : '404';
-
-/* ---------- shared fragments ---------- */
-const heroWin = (eyebrow, title, sub = '', extra = '') => `<section class="hero-win"><div class="hero-win-inner">${extra}<span class="eyebrow">${eyebrow}</span><h1 class="split">${title}</h1>${sub ? `<p>${sub}</p>` : ''}</div><div class="scroll-hint"><span>${E('STEP INSIDE')}</span><i></i></div></section>`;
-function card(p, i) {
-  return `<a class="card" data-r href="${url(p)}" data-cat="${esc(category(p))}"><div class="card-in tilt"><div class="card-media"><img loading="lazy" src="${esc(cdn(poster(p), 900))}" alt="${E(names(p))}">${mp4(p).length ? `<video muted loop playsinline preload="none" data-hover="${esc(mp4(p)[0])}"></video>` : ''}<span class="card-num">${pad(i + 1)}</span><span class="card-glare"></span></div><div class="card-meta"><div><h3>${E(names(p))}</h3><p>${E(category(p))}</p></div><span class="card-arrow">${ARROW}</span></div></div></a>`;
-}
-const footer = () => `<footer class="foot"><div class="footer-top" data-r><span class="eyebrow">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a href="#/contacts">${E("Let's make")}<br><span class="nowrap">${E('something move.')} <span>${ARROW}</span></span></a></div><div class="footer-bottom"><a class="logo footer-logo" href="#/"><img src="assets/roof-logo-black.png" alt="ROOF logo"></a><p>${E('Bologna, Italy.')}<br>${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram ${ARROW}</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube ${ARROW}</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook ${ARROW}</a></div></div>${legal()}</footer>`;
-const legal = () => `<div class="legal"><span>${E('© all content is copyright of RVD srl 2023 · Independent redesign concept')}</span><div><a href="https://www.iubenda.com/privacy-policy/74691616">Privacy</a><a href="https://www.iubenda.com/privacy-policy/74691616/cookie-policy">Cookies</a><a href="https://www.iubenda.com/terms-and-conditions/74691616">${E('Terms')}</a></div></div>`;
-
-/* ---------- HOME: a scroll journey through the room, the façade and the roof ---------- */
-const selected = [projects[0], projects[2], projects[3], projects[4], projects[6]];
-const STAGE = [.335, .60], CARDS = [.70, .86];
-function homeHTML() {
-  const sv = services().slice(0, 4);
-  return `<div class="home"><div class="home-space"></div><div class="pin">
-<section class="panel p-hero" data-range="0,.028" data-fx="hero"><div class="hero-cap"><span class="eyebrow pill">${E('DIGITAL CONTENT. LIVE EXPERIENCES.')}</span><button class="round-link pill" data-goto=".09">${E('ENTER THE BUILDING')} <i>↓</i></button></div></section>
-<section class="panel p-love" data-range=".05,.118" data-fx="zoom"><div class="hero-meta eyebrow rise"><span>${E('INDEPENDENT DIGITAL CONTENT STUDIO')}</span><span class="status">${E('BOLOGNA, ITALY — WORLDWIDE')}</span></div><h1 class="rise" style="--d:1">${E('We love')}<br><em>${E('what we')} ${E('do.')}</em></h1><p class="rise" style="--d:2">${E('Video content. 3D environments. Live experiences.')}<br>${E('We bring imagination to the stage.')}</p></section>
-<section class="panel p-studio" data-range=".14,.225" data-fx="left"><span class="eyebrow rise">${E('01 / THE STUDIO')}</span><h2 class="rise" style="--d:1">${E('Digital content.')}<br>${E('Physical impact.')}<br><em>${E('Experiences that stay.')}</em></h2><p class="body-copy rise" style="--d:2">${E(clean(D[2])[0])} ${E(clean(D[2])[1])}</p><a class="text-link rise" style="--d:3" href="#/about">${E('Meet ROOF')} ${ARROW}</a></section>
-<section class="panel p-stage" data-range=".30,.615" data-fx="stage"><div class="stage-top"><span class="tag">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span></div><div class="stage-caption"><div><span class="tag tag-mobile">${E('SELECTED WORK /')} <span class="filmcount">01</span> — 05</span><span class="eyebrow" id="filmtype"></span><h2 id="filmtitle"></h2><p id="filmsub"></p></div><a class="project-button" id="filmlink">${E('Explore project')} <span>${ARROW}</span></a></div><div class="reel"><div class="timeline">${selected.map((p, i) => `<button data-film="${i}"><b>${pad(i + 1)}</b><span>${E(names(p))}</span></button>`).join('')}</div></div></section>
-<section class="panel p-cards" data-range=".69,.868" data-fx="up"><div class="section-head"><h2>${E('Beyond the screen.')}</h2><a href="#/works" class="text-link">${E('All projects')} ${ARROW}</a></div><div class="strip">${[projects[3], projects[4], projects[5], projects[1], projects[7], projects[8]].map((p, i) => card(p, i)).join('')}</div></section>
-<section class="panel p-services" data-range=".885,.962" data-fx="left"><span class="eyebrow rise">${E('THE ROOFTOP')}</span><h2 class="rise" style="--d:1">${E('Ideas into experiences.')}</h2><div class="mini-list">${sv.map((s, i) => `<a class="rise" style="--d:${i + 2}" href="#/services"><small>${pad(i + 1)}</small>${E(s.name)}<span>${ARROW}</span></a>`).join('')}</div><a href="#/services" class="text-link rise" style="--d:6">${E('Our services')} ${ARROW}</a></section>
-<section class="panel p-end" data-range=".975,2" data-fx="up"><span class="eyebrow rise">${E('NEXT PROJECT, NEW POSSIBILITIES')}</span><a class="end-cta rise" style="--d:1" href="#/contacts">${E("Let's make")}<br><span class="nowrap">${E('something move.')} <span>${ARROW}</span></span></a><div class="end-row rise" style="--d:2"><p>${E('Bologna, Italy.')} ${E('Creating worldwide.')}</p><div><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube</a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook</a><button data-goto="0">${E('Take me back to the top')} ↑</button></div></div>${legal()}</section>
-</div></div>`;
-}
-let home = null, film = -1;
-const amb = document.createElement('canvas'); amb.id = 'ambient'; amb.width = 24; amb.height = 44; amb.setAttribute('aria-hidden', 'true'); /* not attached: replaced by the in-window fit below */
-const ambCtx = amb.getContext('2d');
-function drawAmb() { const s = W.ok && W.slot('home'), c = s && s.el && s.el._amb; if (!c || !(s.el._b > .01) || (c._skip = !c._skip)) return; const hv = s.videoEl; if (!hv || hv.readyState < 2) return; try { c.getContext('2d').drawImage(hv, 0, 0, c.width, c.height); } catch (_) {} }
-// phones: the closer the camera gets to the home window, the more the clip settles to "logo whole + glow".
-// Tied to the camera itself, so it is complete exactly when the camera lands: nothing moves afterwards.
-function homeFitFrame() {
-  const s = W.ok && W.slot('home'); if (!s || !s.el || !s.el.classList.contains('home-win') || !W.homeFillDist) return;
-  const c = W.camera.position, d = Math.hypot(c.x - s.center.x, c.y - s.center.y, c.z - s.center.z), u = W.homeFillDist() / Math.max(d, .001);
-  const b = clamp((u - .45) / .55), e = b * b * (3 - 2 * b);
-  if (s.el._b !== undefined && Math.abs(e - s.el._b) < .002) return; s.el._b = e;
-  const fit = parseFloat(s.el.style.getPropertyValue('--fit')) || 1;
-  s.el.style.setProperty('--vw', (100 + (fit * 200 - 100) * e).toFixed(2) + '%'); s.el.style.setProperty('--ma', (1 - e).toFixed(3));
-  if (s.el._amb) s.el._amb.style.opacity = e.toFixed(3);
-}
-const ambBand = () => { const s = W.ok && W.slot('home'); if (!s || !s.el) return; if (!s.el._amb) { const c = document.createElement('canvas'); c.width = 48; c.height = 27; c.className = 'win-amb'; s.el.insertBefore(c, s.videoEl); s.el._amb = c; } const portrait = innerWidth < innerHeight; s.el.classList.toggle('home-win', portrait); if (!portrait) { s.el._fit = false; s.el.classList.remove('fit'); } s.el.style.setProperty('--fit', Math.min(1, innerWidth / (innerHeight * 1.035 * 16 / 9)).toFixed(4)); };
-// one DOM screen per face of the 3D drum
-const faceEls = selected.map(p => { const d = document.createElement('div'); d.className = 'screen3d'; d.style.backgroundImage = `url("${cdn(poster(p), 1280)}")`; d.innerHTML = `<video muted loop playsinline preload="none" data-src="${esc(mp4(p)[0])}"></video>`; return d; });
-const films = faceEls.map(d => d.firstElementChild);
-films.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
-// the five showreel films download as soon as the home page is up: two at once, then one after another
-let filmsWarm = false;
-let windowsWarm = Promise.resolve();
-function warmFilms() {
-  if (filmsWarm) return; filmsWarm = true; windowsWarm.then(startFilms);
-}
-function startFilms() {
-  let i = 0, live = 0;
-  // two at a time, in showreel order; each one is briefly started (muted) so phones really buffer it, then waits for its turn on the screen
-  const pump = () => { while (live < 2 && i < films.length) { const v = films[i++]; live++; let over = false; const next = () => { if (over) return; over = true; live--; pump(); };
-    v.addEventListener('canplaythrough', next, { once: true }); v.addEventListener('error', next, { once: true }); setTimeout(next, 5000);
-    if (!v.src) { v.preload = 'auto'; v.src = v.dataset.src; }
-    v.play().then(() => { if (!filmsNear) v.pause(); }).catch(() => {}); } };
-  pump();
-}
-let filmsNear = false;
-function setFilm(i, playing, also = -1) {
-  filmsNear = playing;
-  films.forEach((v, j) => { if ((j === i || j === also) && playing) { if (!v.src) v.src = v.dataset.src; if (v.paused) v.play().catch(() => {}); } else if (!v.paused && !v._warming) v.pause(); });
-  if (i === film || i < 0) return; film = i; const p = selected[i];
-  $('#filmtitle').textContent = T(names(p)); $('#filmtype').textContent = T(category(p)); $('#filmsub').textContent = T(clean(p)[1]);
-  $('#filmlink').href = url(p); $$('.filmcount').forEach(e => e.textContent = pad(i + 1));
-  if (!reduce) gsap.fromTo(['#filmtype', '#filmtitle', '#filmsub', '#filmlink'], { y: 70, opacity: 0, rotateX: -70 }, { y: 0, opacity: 1, rotateX: 0, duration: .8, stagger: .06, ease: 'power3.out', overwrite: true });
-  $$('[data-film]').forEach((b, j) => b.classList.toggle('active', j === i));
-}
-function setupHome() {
-  film = -1;
-  home = { panels: $$('.panel').map(el => { const [a, b] = el.dataset.range.split(',').map(Number); return { el, a, b, fx: el.dataset.fx, vis: null }; }), strip: $('.strip'), cards: $$('.strip .card'), bars: $$('[data-film]'), dial: $('.dial-ring') };
-  home.bars.forEach((b, i) => b.onclick = () => goto(STAGE[0] + (STAGE[1] - STAGE[0]) * (i + .25) / 5));
-  measureHome(); setFilm(0, false); ambBand();
-  home.panels.forEach(P => { P.dim = P.el.classList.contains('p-love') || P.el.classList.contains('p-studio') || P.el.classList.contains('p-services') ? .48 : P.el.classList.contains('p-end') ? 0 : P.el.classList.contains('p-cards') ? .3 : 0; });
-}
-function measureHome() { if (!home) return; home.cards.forEach(c => { c._x = c.offsetLeft + c.offsetWidth / 2; }); home.stripW = home.strip.scrollWidth; }
-function homeFrame(p) {
-  // the drum: each project holds the screen, then the prism rolls a face up while the camera steps back
-  const st = clamp((p - STAGE[0]) / (STAGE[1] - STAGE[0]), 0, .9999) * 5, fi = Math.floor(st), roll = fi < 4 ? ease(clamp((st - fi - .58) / .42)) : 0;
-  if (W.ok) { W.setDrum(fi + roll, reduce ? 0 : Math.sin(roll * Math.PI)); W.setHome(p); }
-  const F = .024; let dim = 0;
-  for (const P of home.panels) {
-    const i = P.a <= 0 ? 1 : clamp((p - P.a) / F), o = P.b >= 1 ? 1 : clamp((P.b - p) / F), v = Math.min(i, o);
-    if (v > 0) dim = Math.max(dim, v * P.dim);
-    if (v <= 0) { if (P.vis !== false) { P.vis = false; P.el.style.visibility = 'hidden'; P.el.classList.remove('on'); } continue; }
-    if (!P.vis) { P.vis = true; P.el.style.visibility = 'visible'; }
-    P.el.classList.toggle('on', v > .3);
-    const ei = 1 - ease(i), eo = 1 - ease(o); let t = '';
-    if (!reduce) switch (P.fx) {
-      case 'left': t = `translate3d(${-ei * 16 + eo * 20}vw,0,${-(ei + eo) * 200}px) rotateY(${ei * 42 - eo * 48}deg)`; break;
-      case 'up': t = `translate3d(0,${ei * 22 - eo * 26}vh,${-(ei + eo) * 160}px) rotateX(${-ei * 26 + eo * 30}deg)`; break;
-      case 'zoom': t = `translate3d(0,0,${-ei * 500 + eo * 420}px)`; break;
-      case 'hero': t = `translate3d(0,${eo * 6}vh,0)`; break;
-      default: t = '';
-    }
-    P.el.style.opacity = P.fx === 'stage' ? ease(v) : v; P.el.style.transform = t;
+function landFlight(){
+ const f=routeFlight;gsap.killTweensOf([main,document.querySelector('footer')]);gsap.set([main,document.querySelector('footer')],{clearProps:'opacity'});
+ render();if(f.video)f.video.play().catch(()=>{});
+ const target=main.querySelector('.project-cover-media'),texts=main.querySelectorAll('.project-cover-caption>*,.read-project');
+ const finish=()=>{
+  const cv=target&&target.querySelector('video');
+  if(f.video&&cv&&cv.getAttribute('src')===f.video.getAttribute('src')){
+   // same clip: the flown video takes the cover's place and simply keeps playing
+   const playing=f.video.classList.contains('is-playing');[...f.video.attributes].forEach(a=>{if(a.name!=='src')f.video.removeAttribute(a.name)});
+   [...cv.attributes].forEach(a=>{if(a.name!=='src')f.video.setAttribute(a.name,a.value)});f.video.classList.toggle('is-playing',playing);
+   cv.replaceWith(f.video);f.video.play().catch(()=>{});hoverVideos();
   }
-  scrim.style.opacity = dim.toFixed(3);
-  // phones: a soft live glow of the ROOF clip fills the screen above and below its logo band
-  const ao = W.ok && innerWidth < innerHeight ? 1 - clamp(p / .02) : 0;
-  if (ao !== amb._o) { amb._o = ao; amb.style.opacity = ao; }
-  // phones: only once the window fills the screen does the clip settle to "logo whole + glow"; seen on the façade it stays a normal full window
-  const hs = W.ok && W.slot('home'); if (hs && hs.el) { const want = innerWidth < innerHeight && p < .02; if (hs.el._fit !== want) { hs.el._fit = want; hs.el.classList.toggle('fit', want); } }
-  const near = p > .245 && p < .66, act = roll > .5 ? fi + 1 : fi;
-  setFilm(act, near, roll > 0 && roll < 1 ? (act === fi ? fi + 1 : fi) : -1);
-  for (let j = 0; j < home.bars.length; j++) home.bars[j].style.setProperty('--progress', clamp(st - j));
-  // project cards: a 3D strip gliding past as we climb the façade
-  if (p > CARDS[0] - .03 && p < CARDS[1] + .03) {
-    const t = clamp((p - CARDS[0]) / (CARDS[1] - CARDS[0])), vw = innerWidth, x = vw * .62 - t * (home.stripW - vw * .25 + vw * .37);
-    home.strip.style.transform = `translate3d(${x}px,0,0)`;
-    if (!reduce) for (const c of home.cards) { const n = clamp((c._x + x - vw / 2) / vw, -1.2, 1.2); c.style.transform = `rotateY(${-n * 40}deg) translateZ(${-Math.abs(n) * 220}px)`; }
-  }
+  f.shell.remove();f.veil.remove();routeFlight=null;
+ };
+ if(!target){finish();return}
+ gsap.set(texts,{opacity:0});target.style.visibility='hidden';
+ const r=target.getBoundingClientRect();
+ gsap.timeline({onComplete(){target.style.visibility='';finish();gsap.fromTo(texts,{y:26,opacity:0},{y:0,opacity:1,duration:.75,stagger:.08,ease:'power3.out',clearProps:'transform'})}})
+  .to(f.shell,{left:r.left,top:r.top,width:r.width,height:r.height,scale:1,x:0,y:0,rotationX:0,rotationY:0,borderRadius:0,duration:1.05,ease:'power3.inOut'})
+  .to(f.veil,{opacity:0,duration:.6,ease:'power2.inOut'},'-=.5');
 }
 
-/* ---------- other pages ---------- */
-function worksHTML() {
-  const cats = ['All projects', 'Live visuals', '3D & animation', 'Interactive', 'XR & virtual'];
-  return heroWin(E('THE PORTFOLIO / 09 PROJECTS'), split(T('What we create.'))) +
-    `<section class="sec"><div class="filterbar" data-r aria-label="${E('Filter projects')}">${cats.map((x, i) => `<button class="${i ? '' : 'active'}" aria-pressed="${!i}" data-filter="${esc(x)}">${E(x)}</button>`).join('')}</div><div class="wgrid" id="projects">${projects.map(card).join('')}</div></section>` + footer();
-}
-function setupWorks() {
-  $$('[data-filter]').forEach(b => b.onclick = () => {
-    $$('[data-filter]').forEach(x => { x.classList.toggle('active', x === b); x.setAttribute('aria-pressed', x === b); });
-    const all = $$('#projects .card'), f = b.dataset.filter, show = c => f === 'All projects' || c.dataset.cat === f;
-    all.forEach(c => c.classList.add('in'));
-    gsap.to(all, { opacity: 0, scale: .86, rotateX: -18, y: 30, duration: reduce ? 0 : .28, stagger: .025, ease: 'power2.in', overwrite: true, onComplete() {
-      all.forEach(c => c.style.display = show(c) ? '' : 'none'); lenis && lenis.resize();
-      gsap.fromTo(all.filter(show), { opacity: 0, scale: .86, rotateX: 22, y: 60 }, { opacity: 1, scale: 1, rotateX: 0, y: 0, duration: reduce ? 0 : .7, stagger: .06, ease: 'power3.out', clearProps: 'transform,opacity' });
-    } });
-  });
-}
-function servicesHTML() {
-  return heroWin(E('WHAT WE DO'), split(T('We love')) + '<br>' + split(T('what we do.'))) +
-    `<section class="sec"><p class="eyebrow sec-k" data-r>${E('EIGHT WAYS TO MOVE AN AUDIENCE')}</p><div class="srv-list">${services().map((s, i) => {
-      const link = D[1].links.find(x => x.text === s.link), dest = link ? '#/project/' + link.url.split('/').filter(Boolean).pop() : '#/works', p = serviceProject(i), clip = p && mp4(p)[0];
-      return `<article class="srv" data-r="flip"><button class="srv-head" aria-expanded="false"><small>${pad(i + 1)}</small><span>${E(s.name)}</span><i>+</i></button><div class="srv-body"><div class="srv-in"><div class="srv-copy"><p>${E(s.desc)}</p>${s.link ? `<a href="${dest}">${E(s.link)} ${ARROW}</a>` : ''}</div>${clip ? `<div class="srv-media" style="background-image:url('${esc(cdn(poster(p), 900))}')"><video muted loop playsinline preload="none" data-src="${esc(clip)}"></video></div>` : ''}</div></div></article>`;
-    }).join('')}</div></section>` + footer();
-}
-function setupServices() {
-  const sv = $$('.srv-media video'); sv.forEach(v => v.addEventListener('playing', () => v.classList.add('is-playing')));
-  const loadSrv = i => { const v = sv[i]; if (v && !v.src) { v.preload = 'auto'; v.src = v.dataset.src; v.load(); } };
-  $$('.srv-head').forEach(b => b.onclick = () => {
-    const a = b.parentElement, opening = !a.classList.contains('open');
-    $$('.srv.open').forEach(x => { if (x !== a) { x.classList.remove('open'); x.firstElementChild.setAttribute('aria-expanded', 'false'); const v = $('video', x); v && v.pause(); } });
-    a.classList.toggle('open', opening); b.setAttribute('aria-expanded', opening);
-    const v = $('video', a); if (v) { if (opening) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else v.pause(); }
-  });
-}
-function aboutHTML() {
-  const l = clean(D[2]);
-  return heroWin(E('THE STUDIO'), split(T('We are ROOF.'))) +
-    `<section class="sec about"><span class="eyebrow" data-r>${E('CREATIVE MINDS. SHARED VISION.')}</span><p class="statement" data-scrub="words">${words(T(l[0]) + ' ' + T(l[1]))}</p><div class="about-cols">${l.slice(2).map(x => `<p class="body-copy" data-r>${E(x)}</p>`).join('')}</div></section>
-<section class="clients"><p class="eyebrow" data-r>${E('PART OF US')}</p><div class="clients-frame" data-scrub="tilt"><div class="clients-crop"><img src="${esc(cdn(imgs(D[2])[0], 1600))}" alt="${E('Original ROOF client and collaborator logos')}"></div></div></section>` + footer();
-}
-function contactHTML() {
-  const l = clean(D[3]);
-  return heroWin(E('CONTACT'), split(T('Great things')) + '<br>' + split(T('start with a hello.'))) +
-    `<section class="sec contact"><div class="contact-copy"><div class="contact-main"><span class="eyebrow" data-r>${E('SAY HELLO')}</span><p class="body-copy" data-r>${E(l[1].replace(/^5/, ''))}</p><a class="email magnet" data-r="flip" href="mailto:info@roofvideodesign.com">info@roofvideodesign.com ${ARROW}</a></div>
-<div class="tile tilt" data-r><span class="eyebrow">${E('HOMEBASE')}</span><p>${E(l[3])}</p><div class="address-row"><address>Roof Videodesign<br>Via Rizzoli 4<br>${E('40125 Bologna, Italy')}</address><a class="text-link" href="https://maps.app.goo.gl/zQqFZyZ3rt3q23di9" target="_blank" rel="noopener">${E('Find us on the map')} ${ARROW}</a></div></div><div class="tile tilt" data-r><span class="eyebrow">ROOF</span><p class="body-copy">${E(l[0])}</p></div></div>
-${narrow() ? `<div class="cvideo-inline" data-r><video muted loop playsinline preload="none" data-auto="${esc(vsrc(D[3].videos[0]))}"></video></div></section>` : `<div class="reel-col"><div class="reel-slot"><span class="reel-tag eyebrow">ROOF — REEL</span></div></div></section>
-<div class="cvideo" aria-hidden="true"><video muted loop playsinline preload="auto" src="${esc(vsrc(D[3].videos[0]))}"></video><i></i></div>`}` + footer();
-}
-// Let's talk: the window video detaches, flies into the page and stays with you while you read
-let reel = null;
-const narrow = () => matchMedia('(max-width:860px)').matches;
-function setupContact() {
-  if (!$('.cvideo')) { reel = null; const v = $('.cvideo-inline video'), bg = W.ok && W.slot('contacts') && W.slot('contacts').videoEl;
-    return; }
-  const el = $('.cvideo'), v = $('video', el), slot = $('.reel-slot'), src = W.ok && W.slot('contacts');
-  reel = { el, slot, r0: W.ok ? W.fillRect() : { x: 0, y: 0, w: innerWidth, h: innerHeight }, last: scrollY(), vel: 0 };
-  if (src && src.videoEl && src.videoEl.currentTime) v.addEventListener('loadedmetadata', () => { try { v.currentTime = src.videoEl.currentTime % (v.duration || 1e9); } catch (_) {} }, { once: true });
-  reel.play = () => v.play().catch(() => {}); el.style.width = reel.r0.w + 'px'; el.style.height = reel.r0.h + 'px'; reelFrame(0, reel.last);
-}
-function reelFrame(s, y) {
-  const R = reel, b = R.slot.getBoundingClientRect(), t = reduce ? (s > .02 ? 1 : 0) : ease(clamp(s / .85)), a = R.r0;
-  R.vel += ((y - R.last) - R.vel) * .12; R.last = y;
-  const k = (a.w + (b.width - a.w) * t) / a.w, x = a.x + (b.left - a.x) * t, yy = a.y + (b.top - a.y) * t;
-  const arc = Math.sin(t * Math.PI), tilt = clamp(R.vel * .35, -14, 14), c = (b.top + b.height / 2 - innerHeight / 2) / innerHeight;
-  const ry = reduce ? 0 : -arc * 38 - t * 7, rx = reduce ? 0 : arc * 14 + tilt * t + c * 10 * t, z = arc * 260;
-  R.el.style.transform = `translate3d(${x + a.w * k / 2}px,${yy + a.h * k / 2}px,0) perspective(1400px) translateZ(${z}px) rotateY(${ry}deg) rotateX(${rx}deg) scale(${k}) translate(-50%,-50%)`;
-  R.el.style.setProperty('--t', t.toFixed(3)); R.el.style.setProperty('--glow', (.25 + Math.min(Math.abs(R.vel) * .03, .6)).toFixed(3));
-  R.el.style.visibility = b.bottom < -80 && t >= 1 ? 'hidden' : 'visible';
-}
-function projectHTML(p) {
-  const lines = clean(p), ci = lines.findIndex(x => x.toLowerCase() === 'credits'), body = lines.slice(2, ci < 0 ? undefined : ci).filter(x => !['Visit The Virtual Tour', 'Click Here'].includes(x.trim())), credits = ci < 0 ? [] : lines.slice(ci + 1).filter(x => x.toLowerCase() !== 'credits');
-  const vs = mp4(p), yt = p.videos.filter(x => x && x.includes('youtube.com')), next = projects[(projects.indexOf(p) + 1) % projects.length], id = slug(p), lead = body.shift() || category(p), n = projects.indexOf(p);
-  const tour = id === 'bosch' ? `<a class="text-link" href="${esc((p.links.find(l => l.text === 'Click Here') || {}).url || 'https://www.roofvideodesign.com/project/bosch/')}" target="_blank" rel="noopener">${E('Visit the virtual tour')} ${ARROW}</a>` : '';
-  return heroWin(`${pad(n + 1)} / ${pad(projects.length)} — ${E(category(p))}`, split(T(names(p))), E(lines[1]), `<a class="back" href="#/works">${E('← All projects')}</a>`) +
-    `<section class="sec story"><div data-r><span class="eyebrow">${E('PROJECT NOTES')}</span><h2>${E(lead)}</h2></div><div class="story-body">${body.map(x => `<p class="body-copy" data-r>${E(x)}</p>`).join('')}${tour}${credits.length ? `<div class="credits" data-r><span class="eyebrow">CREDITS</span>${credits.map(x => `<p>${E(x)}</p>`).join('')}</div>` : ''}</div></section>
-<section class="sec"><p class="eyebrow sec-k" data-r>${E('SELECTED FRAMES')}</p><div class="gallery">${imgs(p).map((src, i) => `<button data-r="${i % 2 ? 'right' : 'left'}" data-image="${esc(cdn(src, 2000))}" aria-label="${E(names(p))} ${i + 1}"><img src="${esc(cdn(src, 1100))}" alt="${E(names(p))} ${i + 1}" decoding="async"></button>`).join('')}</div>
-${vs.length > 1 || yt.length ? `<p class="eyebrow sec-k" data-r>${E('IN MOTION')}</p>` : ''}<div class="project-videos">${vs.slice(1).map(src => `<div class="vframe" data-scrub="tilt"><video muted loop playsinline preload="none" data-auto="${esc(src)}"></video></div>`).join('')}${yt.map(src => { const id = (src.match(/embed\/([\w-]{6,})/) || [])[1]; return id ? `<a class="embed-button yt-link" data-r href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener"><span class="yt-inner">${E('Play original YouTube video')} ${ARROW}<br><small>${E('Opens the video on YouTube in a new tab.')}</small></span></a>` : ''; }).join('')}</div></section>
-<a class="next" href="${url(next)}"><span class="eyebrow">${E('NEXT PROJECT')}</span><h2>${split(T(names(next)))}</h2><span class="project-button">${E('Explore')} <span>${ARROW}</span></span><img src="${esc(cdn(poster(next), 1200))}" alt="" loading="lazy"></a>` + footer();
-}
-function setupProject(p) {
-  $$('[data-image]').forEach(b => b.onclick = () => openLightbox(b));
-  $$('[data-embed]').forEach(b => b.onclick = () => { const f = document.createElement('iframe'); f.src = b.dataset.embed; f.title = names(p); f.allowFullscreen = true; f.className = 'embed'; b.replaceWith(f); });
-}
-const notFoundHTML = () => heroWin('404', split(T('Page not found.')), `<a class="text-link" href="#/works">${E('Back to projects')} ${ARROW}</a>`);
-
-/* ---------- scrolling ---------- */
-const lenis = window.Lenis ? new window.Lenis({ lerp: reduce ? 1 : .085, wheelMultiplier: 1.05, autoRaf: false }) : null;
-const scrollY = () => lenis ? lenis.scroll : window.scrollY;
-const limit = () => lenis ? lenis.limit : document.documentElement.scrollHeight - innerHeight;
-const goto = p => { const y = p * limit(), top = p === 0; lenis ? lenis.scrollTo(y, top ? { duration: 3.6, lock: true, easing: t => -(Math.cos(Math.PI * t) - 1) / 2, onStart() { if (W.ok) { gsap.killTweensOf(W, 'smooth'); W.smooth = 1; } }, onComplete() { if (W.ok) gsap.to(W, { smooth: 0, duration: 1, ease: 'power2.out' }); } } : { duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) }) : scrollTo({ top: y, behavior: 'smooth' }); };
-document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) goto(+g.dataset.goto); });
-
-/* ---------- per-frame work (one loop for everything) ---------- */
-let current = routeOf(), busy = true, heroIn = null, hint = null, scrubs = [];
-const cur = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2, el: $('#cursor') };
-const progress = $('#progress'), scrim = $('#scrim');
-function tick(t) {
-  lenis && lenis.raf(t); VS.tick();
-  if (fine) { cur.x += (cur.tx - cur.x) * .22; cur.y += (cur.ty - cur.y) * .22; cur.el.style.transform = `translate3d(${cur.x}px,${cur.y}px,0)`; }
-  drawAmb();
-  homeFitFrame();
-  if (busy) return;
-  const y = scrollY(), lim = Math.max(limit(), 1);
-  progress.style.transform = `scaleX(${clamp(y / lim)})`;
-  if (current.name === 'home') { if (home) homeFrame(clamp(y / lim)); return; }
-  const s = y / innerHeight; W.ok && W.setPage(s, !!reel, current.name === 'contacts' && !reel);
-  if (reel) reelFrame(s, y);
-  if (heroIn) { const k = clamp(1 - s * 1.9); heroIn.style.opacity = k; heroIn.style.transform = `translate3d(0,${-s * 90}px,0)`; heroIn.style.visibility = k <= 0 ? 'hidden' : 'visible'; if (hint) hint.style.opacity = clamp(1 - s * 5) * .9; }
-  scrim.style.opacity = Math.max(.22, clamp((s - .25) * 1.2, 0, .5));
-  for (const sc of scrubs) {
-    const r = sc.el.getBoundingClientRect(); if (r.bottom < -100 || r.top > innerHeight + 100) continue;
-    const k = clamp(1 - (r.top - innerHeight * .25) / (innerHeight * .6));
-    if (sc.kind === 'words') { const n = Math.round(k * sc.words.length); if (n !== sc.n) { sc.n = n; sc.words.forEach((w, i) => w.classList.toggle('lit', i < n)); } }
-    else if (!reduce) { const c = (r.top + r.height / 2 - innerHeight / 2) / innerHeight; sc.el.style.transform = `perspective(1400px) rotateX(${clamp(c, -1, 1) * 22}deg) scale(${1 - Math.abs(clamp(c, -1, 1)) * .1})`; }
-  }
-}
-if (W.ok) W.onFrame = tick; else { document.body.classList.add('no-gl'); const loop = t => { tick(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
-W.onResize = () => { measureHome(); ambBand(); lenis && lenis.resize(); if (reel && W.ok) { reel.r0 = W.fillRect(); reel.el.style.width = reel.r0.w + 'px'; reel.el.style.height = reel.r0.h + 'px'; } };
-if (!W.ok) addEventListener('resize', W.onResize);
-
-/* ---------- mounting a page ---------- */
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px 14% 0px', threshold: 0 });
-const vio = new IntersectionObserver(es => es.forEach(e => { const v = e.target; if (e.isIntersecting) { if (!v.src) v.src = v.dataset.auto; v.play().catch(() => {}); } else v.pause(); }), { threshold: .2 });
-function chrome() {
-  document.documentElement.lang = lang;
-  $$('[data-t]').forEach(el => el.textContent = T(el.dataset.t));
-  $$('[data-language]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.language === lang)));
-  $$('header nav a').forEach(a => a.classList.toggle('active', (a.hash || '#/') === (location.hash || '#/')));
-  const r = current, base = lang === 'it' ? 'ROOF | Amiamo quello che facciamo' : 'ROOF | We love what we do';
-  const name = r.name === 'home' ? '' : r.name === 'works' ? T('Projects') : r.name === 'contacts' ? T('Contact') : r.p ? names(r.p) : T(routeLabel(r));
-  document.title = (name ? name + ' — ' : '') + base;
-}
-// defer: build the page invisibly (before a flight, so decoding and layout never land mid-animation); reveal() shows it
-/* ---------- video download director: one queue for the whole site, strict priorities ----------
-   1. loader + opening flight: the tower's window clips (the current window — ROOF on the home page — first and alone)
-   2. once enough of the tower is in, the home page clips join
-   3. inside a page: unfinished tower downloads are stopped; the page's own window clip and the page's clips load fully
-   4. then the tower resumes, then the rest of the site (the showreel films when not on the home page)
-   Every page change starts again from step 3. */
-const VS = (() => {
-  const LOW = matchMedia('(pointer:coarse)').matches || Math.min(innerWidth, innerHeight) < 620;
-  let token = 0;
-  const stage = document.createElement('div'); stage.setAttribute('aria-hidden', 'true');
-  stage.style.cssText = 'position:fixed;left:0;bottom:0;width:4px;height:4px;overflow:hidden;opacity:.01;pointer-events:none;z-index:-1';
-  document.body.append(stage);
-  const parked = new Set();
-  const hiddenBox = el => { if (!el) return false; if (getComputedStyle(el).display === 'none') return true; const r = el.getBoundingClientRect(); return r.width === 0 || r.height === 0; };
-  function park(v) { if (v.parentElement === stage || !v.parentElement) return; v._home = v.parentElement; v._next = v.nextSibling; stage.append(v); parked.add(v); }
-  function unpark(v) { if (v.parentElement !== stage || !v._home) return; v._home.insertBefore(v, v._next && v._next.parentNode === v._home ? v._next : null); parked.delete(v); }
-  const full = v => { if (!v) return true; if (v.error) return true; const d = v.duration, b = v.buffered; return d > 0 && b.length > 0 && b.end(b.length - 1) >= d - .3; };
-  const srcOf = v => v._src || v.dataset.src || v.dataset.auto || v.getAttribute('src');
-  const slotOf = v => v._slot || null;
-  function start(v) {
-    if (!v) return; const s = srcOf(v); v.preload = 'auto';
-    if (!v.getAttribute('src') && s) { v.src = s; }
-    const sl = slotOf(v); if (sl) sl.started = true;
-    // a short muted start makes phones (iOS) really buffer; whoever owns the clip pauses it again if it is not on screen
-    // showreel films keep playing hidden while they warm up: phones only keep buffering a clip that is playing
-    if (films.includes(v)) v._warming = true;
-    if (hiddenBox(v.parentElement) || hiddenBox(v.parentElement && v.parentElement.parentElement)) park(v);
-    // service clips sit in closed panels: they only download (no hidden playback), so the page stays smooth to scroll
-    if (v.paused && !(v.closest('.srv-media') && !v.closest('.srv.open'))) v.play().catch(() => {});
-  }
-  function stop(v) {
-    if (v && v.parentElement === stage) { unpark(v); v.pause(); }
-    if (!v || full(v) || !v.getAttribute('src')) return;
-    if (!v.paused && v.getBoundingClientRect().width > 0 && v.closest('.win3d') && v.closest('.win3d').style.display === 'block') return;   // never cut a clip that is on screen
-    v._src = srcOf(v); v.pause(); v.removeAttribute('src'); v.load();
-    const sl = slotOf(v); if (sl) sl.started = false;
-  }
-  const playable = v => full(v) || (v && v.readyState >= 4);
-  const waitFull = (v, tok, max, enough) => new Promise(res => { const t0 = performance.now(); const c = () => { if (tok !== token || (enough ? playable(v) : full(v)) || performance.now() - t0 > max) res(); else setTimeout(c, 150); }; c(); });
-  async function run(list, conc, tok, max = 15000, enough = false) {
-    let i = 0;
-    const worker = async () => { while (i < list.length && tok === token) { const v = list[i++]; if (!v || (enough ? playable(v) : full(v))) continue; start(v); await waitFull(v, tok, max, enough); if (v._warming) { v._warming = false; if (current.name !== "home" || !filmsNear) v.pause(); } if (v.parentElement === stage) { unpark(v); v.pause(); } } };
-    await Promise.all(Array.from({ length: conc }, worker));
-  }
-  // the tower: current window first, then the nearest ones
-  function tower(winId) {
-    if (!W.ok) return [];
-    const first = W.slot(winId), all = defs.map(d => W.slot(d.id)).filter(s => s && s.videoEl);
-    all.forEach(s => { s.videoEl._slot = s; s.videoEl._src = s.video; });
-    return all.sort((a, b) => (b === first) - (a === first) || (first ? a.center.distanceTo(first.center) - b.center.distanceTo(first.center) : 0)).map(s => s.videoEl);
-  }
-  function pageClips(r) {
-    if (r.name === 'home') return films.slice();
-    if (r.name === 'services') return $$('.srv-media video');
-    if (r.name === 'contacts') return $$('.cvideo-inline video');
-    if (r.name === 'project') return $$('.vframe video');
-    return [];
-  }
-  const rest = r => r.name === 'home' ? [] : films.slice();
-  return {
-    // every frame: a parked clip whose window or screen comes into view returns home at once (still playing)
-    tick() { if (!parked.size) return; for (const v of parked) { const box = v._home; if (box && !hiddenBox(box) && !hiddenBox(box.parentElement)) unpark(v); } },
-    // loader + opening flight
-    async boot(r) {
-      const tok = ++token, t = tower(r.win);
-      await run(t.slice(0, 1), 1, tok, 20000);
-      if (tok !== token) return;
-      const others = t.slice(1);
-      // "enough" of the tower: about two thirds ready → the home clips join (one at a time)
-      const watch = setInterval(() => { if (tok !== token) return clearInterval(watch); if (others.filter(full).length >= others.length * .66) { clearInterval(watch); run(pageClips(r), 2, tok, 9000, true); } }, 300);
-      await run(others, LOW ? 2 : 3, tok);
-    },
-    // inside a page
-    async enter(r) {
-      const tok = ++token, t = tower(r.win), mine = [t[0]].concat(pageClips(r));
-      t.slice(1).forEach(stop); rest(r).forEach(v => { if (!mine.includes(v)) stop(v); });
-      const key = t[0], kSrc = key && srcOf(key), clips = pageClips(r), same = clips.filter(v => srcOf(v) === kSrc), other = clips.filter(v => srcOf(v) !== kSrc);
-      same.forEach(v => { if (v.getAttribute('src') && !full(v)) { v._src = srcOf(v); v.removeAttribute('src'); v.load(); } v.preload = 'none'; });
-      await run([key], 1, tok, 9000, true);
-      if (tok !== token) return;
-      await run(other, 3, tok, 9000, true);
-      if (tok !== token) return;
-      await run([key], 1, tok, 20000);
-      if (tok !== token) return;
-      await run(same, 1, tok, 9000, true);
-      if (tok !== token) return;
-      await run(t.slice(1), LOW ? 2 : 3, tok);
-      if (tok !== token) return;
-      await run(pageClips(r).concat(rest(r)), 2, tok);
-    },
-  };
-})();
-function mount(r, keep, defer) {
-  const y = keep ? scrollY() : 0;
-  io.disconnect(); vio.disconnect(); home = null; scrubs = []; heroIn = null; reel = null;
-  films.forEach(v => v.pause());
-  document.body.dataset.route = r.name;
-  page.innerHTML = r.name === 'home' ? homeHTML() : r.name === 'works' ? worksHTML() : r.name === 'services' ? servicesHTML() : r.name === 'about' ? aboutHTML() : r.name === 'contacts' ? contactHTML() : r.name === 'project' ? projectHTML(r.p) : notFoundHTML();
-  if (r.name === 'home') setupHome(); else if (r.name === 'works') setupWorks(); else if (r.name === 'services') setupServices(); else if (r.name === 'project') setupProject(r.p); else if (r.name === 'contacts') setupContact();
-  heroIn = $('.hero-win-inner'); hint = $('.scroll-hint');
-  $$('[data-r]').forEach(el => io.observe(el)); $$('[data-auto]').forEach(v => vio.observe(v));
-  scrubs = $$('[data-scrub]').map(el => ({ el, kind: el.dataset.scrub, words: $$('.word', el), n: -1 }));
-  scrim.style.opacity = 0; chrome(); VS.enter(r);
-  if (!W.ok) { const fb = $('#fallback-bg'), d = defs.find(x => x.id === r.win); if (d && d.video && fb.dataset.v !== d.video) { fb.dataset.v = d.video; fb.src = d.video; fb.play().catch(() => {}); } }
-  if (lenis) { lenis.resize(); lenis.scrollTo(y, { immediate: true, force: true }); } else scrollTo(0, y);
-  if (defer) { page.style.opacity = 0; page.style.pointerEvents = 'none'; return; }
-  reveal(keep);
-}
-const toTop = () => { lenis && lenis.scrollTo(0, { immediate: true, force: true }); window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; };
-function reveal(keep) {
-  if (!keep) toTop();
-  page.style.pointerEvents = ''; lenis && lenis.start(); reel && reel.play();
-  if (!keep) requestAnimationFrame(() => { if (scrollY() > 2) toTop(); });
-  busy = false;
-  if (!keep) {
-    gsap.fromTo(page, { opacity: 0 }, { opacity: 1, duration: reduce ? 0 : .6, ease: 'power2.out' });
-    requestAnimationFrame(() => requestAnimationFrame(() => { const h = $('.hero-win'); h && h.classList.add('in'); }));
-    $('#main').focus({ preventScroll: true });
-  } else { const h = $('.hero-win'); h && h.classList.add('in', 'now'); }
-}
-
-/* ---------- travelling between windows ---------- */
-const hud = $('#hud'), shutter = $('#shutter');
-const wait = tl => tl.then();
-const videosReady = (list, max) => new Promise(res => { const t0 = performance.now(); const chk = () => { if (list.every(v => !v || v.readyState >= 3 || v.error) || performance.now() - t0 > max) res(); else setTimeout(chk, 120); }; chk(); });
-let pending = false;
-async function go() {
-  if (busy) { pending = true; return; }
-  const next = routeOf(), prev = current;
-  if (next.key === prev.key) return;
-  busy = true; lenis && lenis.stop(); closeMenu(); amb._o = 0; amb.style.opacity = 0;
-  { const hs = W.ok && W.slot('home'); if (hs && hs.el) { hs.el._fit = false; hs.el.classList.remove('fit'); } }
-  const scrolled = scrollY() > 4;
-  await wait(gsap.to(page, { opacity: 0, duration: reduce ? 0 : .32, ease: 'power2.in' }));
-  page.innerHTML = ''; home = null; films.forEach(v => v.pause()); scrim.style.opacity = 0; progress.style.transform = 'scaleX(0)';
-  lenis ? lenis.scrollTo(0, { immediate: true, force: true }) : scrollTo(0, 0);
-  current = next; chrome();
-  const fly = W.ok && !reduce && prev.win !== next.win;
-  if (fly) { mount(next, false, true); await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60)))); }
-  if (W.ok && !reduce) {
-    // the yellow shutter only exists while it moves (phones tint their bars with fixed coloured layers)
-    if (scrolled) { shutter.style.visibility = 'visible'; await wait(gsap.fromTo(shutter, { scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 1, duration: .42, ease: 'power3.inOut' })); W.toFill(prev.win); gsap.fromTo(shutter, { scaleY: 1, transformOrigin: '50% 0%' }, { scaleY: 0, duration: .5, ease: 'power3.inOut', delay: .05, onComplete() { shutter.style.visibility = 'hidden'; } }); }
-    if (prev.win !== next.win) {
-      $('.hud-k').textContent = T('NOW ENTERING'); $('.hud-name').textContent = T(routeLabel(next)); $('.hud-floor').textContent = T('FLOOR') + ' ' + pad(W.floor(next.win));
-      gsap.fromTo(hud, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, delay: .35 }); gsap.to(hud, { opacity: 0, y: -20, duration: .4, delay: 2.0 });
-      await wait(W.fly(prev.win, next.win));
-      if (next.name === 'contacts') await videosReady([W.slot('contacts') && W.slot('contacts').videoEl], 900);
-    }
-  } else if (W.ok) { W.setActive(next.win); W.toFill(next.win); }
-  if (fly) reveal(); else mount(next);
-  if (pending) { pending = false; go(); }
-}
-addEventListener('hashchange', go);
-
-/* ---------- chrome interactions ---------- */
-const menuBtn = $('#menu'), nav = $('header nav');
-function closeMenu() { nav.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('menu-open'); }
-menuBtn.onclick = () => { const o = nav.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', o); document.body.classList.toggle('menu-open', o); };
-$$('[data-language]').forEach(b => b.onclick = () => { if (lang === b.dataset.language) return; lang = b.dataset.language; try { localStorage.setItem('roof-language', lang); } catch (_) {} if (busy) chrome(); else mount(current, true); });
-const lb = $('#lightbox'), lbFrame = $('.lb-frame', lb), lbImg = $('img', lbFrame); let lbThumb = null, lbBusy = false;
-// locking the page must not change its width (scrollbar gap kept), or the thumbnail would move under the closing photo
-function lockScroll(on) { const html = document.documentElement; if (on) { html.style.paddingRight = (innerWidth - html.clientWidth) + 'px'; html.classList.add('lb-lock'); lenis && lenis.stop(); } else { html.classList.remove('lb-lock'); html.style.paddingRight = ''; lenis && lenis.start(); } }
-const lbRect = el => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
-function openLightbox(button) {
-  if (lbBusy || lb.open) return; const thumb = $('img', button), small = innerWidth <= 860; lbThumb = button;
-  const ratio = thumb.naturalWidth && thumb.naturalHeight ? thumb.naturalWidth / thumb.naturalHeight : 1.5;
-  const maxW = innerWidth * (small ? .92 : .84), maxH = innerHeight * (small ? .7 : .78); let w = maxW, h = w / ratio; if (h > maxH) { h = maxH; w = h * ratio; }
-  const end = { left: (innerWidth - w) / 2, top: (innerHeight - h) / 2 - (small ? 10 : 14), width: w, height: h };
-  lbImg.src = thumb.currentSrc || thumb.src; lbImg.alt = thumb.alt;
-  const hi = new Image(); hi.onload = () => { if (lb.open && lbThumb === button) lbImg.src = hi.src; }; hi.src = button.dataset.image;
-  const all = $$('[data-image]'); $('.lb-title', lb).textContent = current.p ? T(names(current.p)) : ''; $('.lb-count', lb).textContent = pad(all.indexOf(button) + 1) + ' / ' + pad(all.length);
-  lockScroll(true); lb.showModal();
-  if (reduce) { Object.assign(lbFrame.style, { left: end.left + 'px', top: end.top + 'px', width: end.width + 'px', height: end.height + 'px' }); return; }
-  const start = lbRect(button); button.style.visibility = 'hidden'; lbBusy = true;
-  gsap.timeline({ onComplete() { lbBusy = false; } })
-    .fromTo($('.lb-bg', lb), { opacity: 0 }, { opacity: 1, duration: .55, ease: 'power2.out' }, 0)
-    .fromTo(lbFrame, { ...start, opacity: 1, borderRadius: 6, rotation: -2, boxShadow: '0 0 0 rgba(0,0,0,0)' }, { ...end, borderRadius: 22, rotation: 0, boxShadow: '0 50px 140px rgba(0,0,0,.7)', duration: .85, ease: 'expo.out' }, 0)
-    .fromTo(lbImg, { scale: 1.18 }, { scale: 1, duration: 1.1, ease: 'expo.out' }, 0)
-    .fromTo([$('.lb-meta', lb), $('.lb-close', lb)], { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: .6, stagger: .08, ease: 'power3.out' }, .3);
-}
-function closeLightbox() {
-  if (!lb.open || lbBusy) return; const button = lbThumb;
-  const done = () => { lb.close(); lockScroll(false); if (button) button.style.visibility = ''; gsap.set(lbFrame, { opacity: 1 }); lbBusy = false; };
-  if (reduce || !button) { done(); return; }
-  lbBusy = true; const back = lbRect(button), radius = parseFloat(getComputedStyle(button).borderTopLeftRadius) || 0;
-  gsap.timeline({ onComplete: done })
-    .to([$('.lb-close', lb), $('.lb-meta', lb)], { opacity: 0, y: 12, duration: .25, ease: 'power2.in' }, 0)
-    .to(lbImg, { keyframes: [{ scale: 1.06, duration: .35, ease: 'power2.out' }, { scale: 1, duration: .5, ease: 'power3.inOut' }] }, 0)
-    .to(lbFrame, { ...back, borderRadius: radius, boxShadow: '0 0 0 rgba(0,0,0,0)', duration: .85, ease: 'expo.inOut' }, 0)
-    .to(lbFrame, { keyframes: [{ rotation: 1.5, duration: .4, ease: 'sine.inOut' }, { rotation: 0, duration: .45, ease: 'sine.inOut' }] }, 0)
-    .to($('.lb-bg', lb), { opacity: 0, duration: .65, ease: 'power2.inOut' }, .12)
-    .call(() => { button.style.visibility = ''; }, null, .72)
-    .to(lbFrame, { opacity: 0, duration: .18, ease: 'power1.out' }, .8);
-}
-$('.lb-close', lb).onclick = closeLightbox; $('.lb-bg', lb).onclick = closeLightbox; lb.addEventListener('cancel', e => { e.preventDefault(); closeLightbox(); });
-if (fine) {
-  document.body.classList.add('has-cursor');
-  let tiltEl = null;
-  addEventListener('pointermove', e => {
-    cur.tx = e.clientX; cur.ty = e.clientY;
-    if (!cur.seen) { cur.seen = true; cur.x = cur.tx; cur.y = cur.ty; cur.el.style.transform = `translate3d(${cur.x}px,${cur.y}px,0)`; cur.el.classList.add('seen'); }
-    const t = e.target.closest ? e.target.closest('.tilt') : null;
-    if (tiltEl && tiltEl !== t) { tiltEl.style.setProperty('--rx', 0); tiltEl.style.setProperty('--ry', 0); }
-    tiltEl = t;
-    if (t && !reduce) { const r = t.getBoundingClientRect(), nx = (e.clientX - r.left) / r.width - .5, ny = (e.clientY - r.top) / r.height - .5; t.style.setProperty('--ry', (nx * 16).toFixed(2)); t.style.setProperty('--rx', (-ny * 14).toFixed(2)); t.style.setProperty('--mx', ((nx + .5) * 100).toFixed(1) + '%'); t.style.setProperty('--my', ((ny + .5) * 100).toFixed(1) + '%'); }
-    const m = e.target.closest ? e.target.closest('.magnet') : null;
-    $$('.magnet').forEach(x => { if (x !== m) x.style.translate = ''; });
-    if (m && !reduce) { const r = m.getBoundingClientRect(); m.style.translate = `${(e.clientX - r.left - r.width / 2) * .12}px ${(e.clientY - r.top - r.height / 2) * .3}px`; }
-  }, { passive: true });
-  document.addEventListener('pointerover', e => {
-    const c = e.target.closest && e.target.closest('.card,[data-image],.next'), h = e.target.closest && e.target.closest('a,button,summary');
-    cur.el.classList.toggle('view', !!c); cur.el.classList.toggle('hot', !!h && !c);
-    cur.el.firstElementChild.textContent = c ? T('VIEW') : '';
-    const cardEl = e.target.closest && e.target.closest('.card');
-    $$('.card video').forEach(v => { if (!cardEl || !cardEl.contains(v)) { if (!v.paused) v.pause(); v.classList.remove('on'); } });
-    if (cardEl) { const v = $('video', cardEl); if (v) { if (!v.src) v.src = v.dataset.hover; v.play().then(() => v.classList.add('on')).catch(() => {}); } }
-  }, { passive: true });
-}
-
-/* ---------- refresh mid-page: after the opening, glide back to the same point ---------- */
-try { history.scrollRestoration = 'manual'; } catch (_) {}
-addEventListener('pagehide', () => { try { sessionStorage.setItem('roof-scroll', JSON.stringify({ h: location.hash, y: scrollY() })); } catch (_) {} });
-function restoreScroll() {
-  let s = null; try { s = JSON.parse(sessionStorage.getItem('roof-scroll') || 'null'); sessionStorage.removeItem('roof-scroll'); } catch (_) {}
-  const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-  if (!s || s.h !== location.hash || s.y < 60 || (nav && nav.type !== 'reload')) return false;
-  setTimeout(() => {
-    lenis && lenis.resize(); const target = Math.min(s.y, limit());
-    if (reduce) { lenis ? lenis.scrollTo(target, { immediate: true, force: true }) : scrollTo(0, target); return; }
-    if (lenis) lenis.scrollTo(target, { duration: Math.min(4.5, Math.max(1.4, target / 2300)), easing: t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2 });
-    else scrollTo({ top: target, behavior: 'smooth' });
-  }, 450);
-  return true;
-}
-// Home: once the camera has landed on the window, keep going — through the window and into the room ("We love what we do").
-const ROOM_P = .078;
-function enterRoom() {
-  if (current.name !== 'home' || reduce) return; const target = ROOM_P * limit(); if (scrollY() >= target - 4) return;
-  if (lenis) lenis.scrollTo(target, { duration: 2.4, easing: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 }); else scrollTo({ top: target, behavior: 'smooth' });
-}
-
-/* ---------- boot: loader → the city is built → fly into the window ---------- */
-(function boot() {
-  const bootEl = $('#boot'), num = $('.boot-num'), bar = $('.boot-track i'), skip = $('#skip-intro'), c = { v: 0 };
-  chrome();
-  if (W.ok) { W.init(defs); W.attachFaces(faceEls); ambBand(); W.setActive(current.win); W.preload(current.win); } VS.boot(current);
-  const setN = () => { num.textContent = String(Math.round(c.v)).padStart(3, '0'); bar.style.transform = `scaleX(${c.v / 100})`; };
-  // The loader opens once at least a third of the window clips can play (and the fonts are in), and never lasts more than 3 s.
-  // The bar follows the later of "time passed" and "clips ready": both only grow, so it always moves forward, smoothly.
-  const MAXT = reduce ? 0 : 3000, MINT = reduce ? 0 : 1100, t0 = performance.now();
-  const winVids = () => defs.filter(d => d.video).map(d => W.ok && W.slot(d.id) && W.slot(d.id).videoEl).filter(Boolean);
-  let fontsOk = !document.fonts; if (document.fonts) document.fonts.ready.then(() => { fontsOk = true; });
-  const ready = new Promise(res => {
-    const step = () => {
-      const el = performance.now() - t0, vs = winVids(), need = Math.max(1, Math.ceil(vs.length / 3)), n = vs.filter(v => v.readyState >= 3).length;
-      const target = Math.min(94, Math.max(el / Math.max(MAXT, 1) * 94, vs.length ? Math.min(n / need, 1) * 94 : 94));
-      c.v += (Math.max(target, c.v) - c.v) * .1; setN();
-      if (el >= MAXT || (el >= MINT && fontsOk && n >= need)) res(); else requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-  ready.then(() => {
-    gsap.to(c, { v: 100, duration: reduce ? 0 : .45, ease: 'power1.out', onUpdate: setN, onComplete() {
-      $('.boot-label').textContent = T('READY TO EXPERIENCE');
-      const done = () => { document.body.classList.remove('is-booting', 'is-intro'); skip.remove(); mount(current); restoreScroll(); if (pending || routeOf().key !== current.key) { pending = false; go(); } };
-      if (!W.ok || reduce) { W.ok && W.intro(current.win, true); gsap.to(bootEl, { opacity: 0, duration: .4, onComplete() { bootEl.remove(); } }); done(); return; }
-      document.body.classList.add('is-intro');
-      const intro = W.intro(current.win); intro.then(done);
-      skip.onclick = () => intro.timeScale(9);
-      gsap.timeline({ onComplete() { bootEl.remove(); } })
-        .to('.boot-row,.boot-track', { opacity: 0, y: -16, duration: .35, stagger: .05 }, .1)
-        .to('.boot-logo', { scale: 1.8, opacity: 0, filter: 'blur(14px)', duration: .9, ease: 'power3.in' }, .15)
-        .to(bootEl, { backgroundColor: 'rgba(7,8,11,0)', duration: 1.3, ease: 'power2.inOut' }, .35);
-    } });
-  });
-})();
-})();
+(()=>{const nav=$('nav'),btn=$('#menu');new MutationObserver(()=>{const open=nav.classList.contains('open');document.body.classList.toggle('menu-open',open);btn.textContent=open?'Close ×':'Menu +'}).observe(nav,{attributes:true,attributeFilter:['class']});
+ nav.addEventListener('click',e=>{if(e.target===nav){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}})})();

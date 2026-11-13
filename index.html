@@ -1,64 +1,27 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#07080b">
-<meta name="description" content="ROOF — digital content creation, live visuals and 3D environments. An independent redesign proposal.">
-<title>ROOF — Beyond the screen</title>
-<link rel="preconnect" href="https://www.roofvideodesign.com"><link rel="preconnect" href="https://i0.wp.com"><link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="style.css">
-</head>
-<body class="is-booting">
-<script>/* start downloading the home window clip at once, before anything else */(function(){var h=location.hash;if(h&&h!=="#"&&h!=="#/"&&h.indexOf("#main")!==0)return;var v=document.createElement("video");v.muted=true;v.playsInline=true;v.setAttribute("muted","");v.setAttribute("playsinline","");v.preload="auto";var o="https://www.roofvideodesign.com/wp-content/uploads/2023/03/ROOF-Logo-Animation-Home-_small-short.mp4",small=matchMedia("(max-width:900px)").matches||(matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<820);v.src=small?"media/m/ROOF-Logo-Animation-Home-_small-short.mp4":o;window.__roofEarly=v})();</script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="ROOF — digital content creation, live visuals and 3D environments. An independent redesign proposal."><title>ROOF — Beyond the screen</title><link rel="preconnect" href="https://www.roofvideodesign.com"><link rel="preconnect" href="https://i0.wp.com"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="preload" as="image" href="assets/roof-logo-yellow.png"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="mix.css"></head><body class="is-loading"><style>
+#boot-loader{position:fixed;inset:0;z-index:9999;background:#111210;color:#f2f2e9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .45s ease,visibility .45s ease}
+#boot-loader .boot-logo{display:inline-flex;align-items:center;justify-content:center}
+#boot-loader .boot-logo img{display:block;width:clamp(140px,19vw,235px);height:auto}
+#boot-loader .boot-label{font:11px/1.5 Arial,sans-serif;letter-spacing:2px;color:#b5b7ad}
+#boot-loader .boot-track{width:140px;height:2px;background:#363832;overflow:hidden}
+#boot-loader .boot-track:after{content:'';display:block;width:45%;height:100%;background:#f7eb62;animation:boot-slide 1.2s ease-in-out infinite}
+@keyframes boot-slide{from{transform:translateX(-110%)}to{transform:translateX(330%)}}
+body.is-loading{overflow:hidden}body.is-loading>header,body.is-loading>main,body.is-loading>footer{visibility:hidden}
+#boot-loader.is-ready{opacity:0;visibility:hidden;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#boot-loader,#boot-loader .boot-track:after{animation:none;transition:none}}
 
-<!-- videos live here, in 3D, underneath the WebGL canvas -->
-<div id="css3d" aria-hidden="true"><div id="css3d-cam"></div></div>
-<canvas id="gl" aria-hidden="true"></canvas>
-<video id="fallback-bg" muted loop playsinline aria-hidden="true"></video>
-<div id="scrim" aria-hidden="true"></div>
-
-<a class="skip" href="#main" data-t="Skip to content">Skip to content</a>
-
-<header>
-  <a href="#/" class="logo" aria-label="ROOF home"><img src="assets/roof-logo-yellow.png" alt="ROOF logo"></a>
-  <nav aria-label="Main navigation">
-    <a href="#/" data-t="Home">Home</a>
-    <a href="#/works" data-t="What we create">What we create</a>
-    <a href="#/services" data-t="Services">Services</a>
-    <a href="#/about" data-t="About">About</a>
-    <a class="contact-link" href="#/contacts"><span data-t="Let's talk">Let's talk</span> <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
-  </nav>
-  <div class="language-switch" role="group" aria-label="Language / Lingua">
-    <button type="button" data-language="it" lang="it" aria-label="Italiano" aria-pressed="false">IT</button><span aria-hidden="true">/</span><button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button>
-  </div>
-  <button id="menu" aria-expanded="false" aria-label="Toggle navigation"><span></span><span></span></button>
-</header>
-
-<main id="main" tabindex="-1"><div id="page"></div></main>
-
-<div id="progress" aria-hidden="true"></div>
-<div id="hud" aria-hidden="true"><span class="hud-k"></span><b class="hud-name"></b><i class="hud-floor"></i></div>
-<button id="skip-intro" type="button" data-t="Skip intro">Skip intro</button>
-<div id="shutter" aria-hidden="true"></div>
-<div id="cursor" aria-hidden="true"><span></span></div>
-
-<div id="boot" role="status" aria-live="polite">
-  <img class="boot-logo" src="assets/roof-logo-yellow.png" alt="ROOF">
-  <div class="boot-row"><span class="boot-label" data-t="LOADING EXPERIENCE">LOADING EXPERIENCE</span><span class="boot-num">000</span></div>
-  <div class="boot-track"><i></i></div>
-</div>
-
-<dialog id="lightbox" aria-label="Image viewer"><div class="lb-bg"></div><figure class="lb-frame"><img alt="Project image enlarged"></figure><div class="lb-meta"><span class="lb-title"></span><span class="lb-count"></span></div><button class="lb-close" type="button" aria-label="Close image"><span></span><span></span></button></dialog>
-
-<script src="vendor/gsap.min.js"></script>
-<script src="vendor/lenis.min.js"></script>
-<script src="vendor/three.min.js"></script>
-<script src="translations.js"></script>
-<script src="data.js"></script>
-<script src="world.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+/* Finish loading, then reveal the moving image underneath. */
+#boot-loader{clip-path:inset(0 0 0 0);transition:clip-path .95s cubic-bezier(.76,0,.24,1);will-change:clip-path}
+#boot-loader .boot-logo{transition:transform .8s cubic-bezier(.22,1,.36,1),opacity .65s ease,filter .8s ease;will-change:transform,opacity}
+#boot-loader .boot-label,#boot-loader .boot-track{transition:opacity .3s ease,transform .5s ease}
+#boot-loader .boot-track:after{transition:width .3s ease,transform .3s ease}
+#boot-loader.is-complete .boot-track:after{animation:none;width:100%;transform:none}
+#boot-loader.is-complete .boot-label{color:#f7eb62}
+#boot-loader.is-exiting{clip-path:inset(0 0 100% 0)}
+#boot-loader.is-exiting .boot-logo{transform:translateY(-65px) scale(1.55);opacity:0;filter:blur(10px)}
+#boot-loader.is-exiting .boot-label,#boot-loader.is-exiting .boot-track{opacity:0;transform:translateY(-18px)}
+body.is-revealing{overflow:hidden}
+body.is-revealing>header,body.is-revealing>main,body.is-revealing>footer{animation:boot-content-in 1.15s cubic-bezier(.22,1,.36,1) both}
+@keyframes boot-content-in{from{transform:translateY(28px);opacity:.6}to{transform:translateY(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){#boot-loader,#boot-loader .boot-logo,#boot-loader .boot-label,#boot-loader .boot-track,#boot-loader .boot-track:after{transition:none!important}body.is-revealing>header,body.is-revealing>main,body.is-revealing>footer{animation:none}#boot-loader.is-exiting .boot-logo{transform:none;filter:none}}
+</style><div id="boot-loader" role="status" aria-live="polite"><span class="boot-logo" aria-label="ROOF"><img src="assets/roof-logo-yellow.png" alt="ROOF logo"></span><span class="boot-track" aria-hidden="true"></span><span class="boot-label">LOADING EXPERIENCE</span></div><a class="skip" href="#main">Skip to content</a><header><a href="#/" class="logo" aria-label="ROOF home"><img src="assets/roof-logo-yellow.png" alt="ROOF logo"></a><nav aria-label="Main navigation"><a href="#/">Home</a><a href="#/works">What we create</a><a href="#/services">Services</a><a href="#/about">About</a><a class="contact-link" href="#/contacts">Let's talk <span><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a></nav><div class="language-switch" data-language-switch role="group" aria-label="Language / Lingua"><button type="button" data-language="it" lang="it" aria-label="Italiano" aria-pressed="false">IT</button><span aria-hidden="true">/</span><button type="button" data-language="en" lang="en" aria-label="English" aria-pressed="true">EN</button></div><button id="menu" aria-expanded="false" aria-label="Toggle navigation">Menu +</button></header><main id="main"></main><footer><a class="footer-cta" href="#/contacts"><span class="eyebrow">NEXT PROJECT, NEW POSSIBILITIES</span><span class="cta-text">Let's make<br>something move.</span><span class="cta-run" aria-hidden="true"><i><svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></i></span></a><a class="footer-logo" href="#/" aria-label="ROOF home"><img src="assets/roof-logo-black.png" alt="ROOF logo"></a><p>Bologna, Italy.<br>Creating worldwide.</p><div class="social"><a href="https://www.instagram.com/roofvideodesign/" target="_blank" rel="noopener">Instagram <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a href="https://www.youtube.com/@roofvideodesign7410" target="_blank" rel="noopener">YouTube <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a><a href="https://it-it.facebook.com/roofvideodesign/" target="_blank" rel="noopener">Facebook <svg class="arrow-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg></a></div><div class="legal"><span>© all content is copyright of RVD srl 2026 · Independent redesign concept</span><div><a href="https://www.iubenda.com/privacy-policy/74691616">Privacy</a><a href="https://www.iubenda.com/privacy-policy/74691616/cookie-policy">Cookies</a><a href="https://www.iubenda.com/terms-and-conditions/74691616">Terms</a></div></div></footer><dialog id="lightbox" aria-label="Image viewer"><div class="lb-bg"></div><figure class="lb-frame"><img alt="Project image enlarged"></figure><div class="lb-meta"><span class="lb-title"></span><span class="lb-count"></span></div><button class="lb-close" type="button" aria-label="Close image"><span></span><span></span></button></dialog><script src="vendor/gsap.min.js"></script><script src="vendor/ScrollTrigger.min.js"></script><script src="translations.js"></script><script src="translations-extra.js"></script><script src="language.js"></script><script src="app.js"></script><script src="loader.js"></script><script src="scroll-restore.js"></script><script src="scroll-effects.js"></script><script src="accordion.js"></script></body></html>

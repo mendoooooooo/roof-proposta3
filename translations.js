@@ -145,7 +145,7 @@ window.ROOF_ITALIAN = {
   "Page not found.": "Pagina non trovata.",
   "Original ROOF client and collaborator logos": "Loghi originali dei clienti e collaboratori ROOF",
   "ROOF animated identity": "Identità animata di ROOF",
-  "© all content is copyright of RVD srl 2023 · Independent redesign concept": "© Tutti i contenuti sono di RVD srl 2023 · Proposta indipendente di restyling",
+  "© all content is copyright of RVD srl 2026 · Independent redesign concept": "© Tutti i contenuti sono di RVD srl 2026 · Proposta indipendente di restyling",
   "3D Virtual construction site": "Cantiere virtuale 3D",
   "TV spot 2020": "Spot TV 2020",
   "NFT designs for HH World Tour 2022": "Design NFT per HH World Tour 2022",
@@ -162,5 +162,6 @@ window.ROOF_ITALIAN = {
   "Content Creation Eurovision Song Contest 2022": "Creazione di contenuti per Eurovision Song Contest 2022",
   "For any inquiries, careers opportunities just drop us an email at:": "Per informazioni o opportunità di lavoro, scrivici a:",
   "ROOF is a digital content creation studio that specializes in designing high-quality video content and 3D environments for live events.": "ROOF è uno studio di creazione di contenuti digitali specializzato nella progettazione di contenuti video di alta qualità e ambienti 3D per eventi dal vivo.",
-  "READY TO EXPERIENCE": "TUTTO PRONTO"
+  "READY TO EXPERIENCE": "TUTTO PRONTO",
+  "Opens the video on YouTube in a new tab.": "Apre il video su YouTube in una nuova scheda."
 };

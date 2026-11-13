@@ -1,25 +1,56 @@
-# ROOF — Esperienza 3D
+# ROOF — Proposta Mix
 
-Proposta indipendente di redesign per **ROOF Videodesign**, studio di Bologna specializzato in contenuti video, live visuals e ambienti 3D per eventi dal vivo.
+Proposta indipendente di restyling per **ROOF Videodesign**, studio di Bologna specializzato in contenuti video, live visuals e ambienti 3D per eventi dal vivo.
 
-In questa versione il sito è una **città in 3D**: il palazzo ROOF si costruisce davanti all'utente, ogni finestra è una pagina o un progetto con il suo video, e la navigazione è un volo di camera da una finestra all'altra. Il sito è statico: nessun server, nessuna build, nessuna installazione.
+Questa versione unisce le due proposte precedenti: la struttura semplice e leggibile della **proposta 1** fa da base, mentre dalla **proposta Cinema** arrivano il manifesto "We love what we do", le card che si inclinano seguendo il mouse, la pagina del singolo progetto con il video che "vola" fino alla copertina, la pagina About, la pagina Let's talk e il footer.
+
+Il sito è una single-page application statica: nessun server, nessuna build, nessuna installazione. Tutti i contenuti (testi, progetti, immagini e video) provengono dal sito originale di ROOF e sono incorporati nel codice.
 
 ---
 
 ## Indice
 
+1. [Cosa viene da ciascuna proposta](#cosa-viene-da-ciascuna-proposta)
 1. [Avvio rapido](#avvio-rapido)
 2. [Come funziona il sito](#come-funziona-il-sito)
 3. [Le pagine](#le-pagine)
-4. [Caricamento dei video](#caricamento-dei-video)
+4. [Caricamento di video e immagini](#caricamento-di-video-e-immagini)
 5. [Esperienza mobile](#esperienza-mobile)
 6. [Lingua italiano / inglese](#lingua-italiano--inglese)
-7. [Accessibilità e compatibilità](#accessibilità-e-compatibilità)
+7. [Accessibilità](#accessibilità)
 8. [Struttura dei file](#struttura-dei-file)
-9. [Note tecniche](#note-tecniche)
-10. [Librerie](#librerie)
-11. [Cronologia delle versioni](#cronologia-delle-versioni)
-12. [Requisiti e note](#requisiti-e-note)
+9. [Librerie](#librerie)
+10. [Requisiti e note](#requisiti-e-note)
+
+---
+
+## Cosa viene da ciascuna proposta
+
+| Parte del sito | Stile | Dettagli |
+|---|---|---|
+| Loader e video ROOF iniziale | Proposta 1 | Il video identitario compare a tutto schermo dopo il caricamento |
+| Header | Proposta 1 | **Let's talk** senza riquadro: una sola linea sotto il testo che, al passaggio del mouse, si colora di giallo da sinistra verso destra |
+| Barra di lettura sotto l'header | Proposta 1 | Linea gialla che avanza con lo scroll |
+| "We love what we do." | Cinema | Manifesto centrato a tutto schermo, con *what we do.* in corsivo giallo |
+| Vetrina dei lavori in home | Proposta 1 | Sezione fissata con i 5 lavori selezionati |
+| Card dei progetti in home | Proposta 1 + Cinema | Layout della proposta 1, con inclinazione e riflesso che seguono il mouse |
+| Link testuali (Meet ROOF, All projects…) | Mix | Al passaggio del mouse la freccia diventa gialla e la linea sotto si riempie di giallo da sinistra |
+| What we create | Proposta 1 + Cinema | Titolo e filtri della proposta 1, separati da una linea; card Cinema con video, inclinazione, numero giallo e freccia che ruota verso destra |
+| Services | Proposta 1 | Fisarmonica con video |
+| Pagina di un progetto | Cinema | Copertina divisa, note e crediti, galleria, link YouTube arrotondato, banda gialla "Next project", pulsante **← All projects** della proposta 1 |
+| About | Cinema | Senza "Beyond the screen" (già presente in home); loghi in cornice come nella proposta 3D; linea sopra e sotto la fascia scorrevole |
+| Let's talk | Cinema | **Find us on the map** come link della proposta 1: freccia che diventa gialla e ruota, linea che si riempie |
+| Footer | Cinema su giallo | La freccia sta accanto a "something move." e, al passaggio del mouse, scorre fluida verso destra |
+
+In tutto il sito non c'è alcun effetto vetro (sfocatura dello sfondo).
+
+### Numerazione dei lavori
+
+Il numero giallo di ogni card in **What we create** indica la posizione nella lista visibile: con il filtro *All projects* Be You è il numero 05, con il filtro *3D & animation* diventa 01.
+
+### Apertura di un progetto
+
+Cliccando una card (in home, in What we create o il pulsante **Explore project** della vetrina), il video si stacca dalla card, il fondo si scurisce e il video vola fino alla copertina del progetto continuando a girare, senza ripartire. I testi della pagina entrano dopo l'atterraggio.
 
 ---
 
@@ -30,47 +61,35 @@ In questa versione il sito è una **città in 3D**: il palazzo ROOF si costruisc
 
 Non servono Live Server, Node.js o altre installazioni.
 
-> **Importante:** mantieni la struttura delle cartelle così com'è. `index.html` deve restare accanto ai file `.js` e `.css` e alle cartelle `assets`, `vendor` e `media`.
+> **Importante:** mantieni la struttura delle cartelle così com'è. `index.html` deve restare accanto a `style.css`, ai file `.js` e alle cartelle `assets`, `vendor` e `media`.
 
 ---
 
 ## Come funziona il sito
 
-### 1. Loader
+### 1. Schermata di caricamento
 
-Il logo ROOF e una barra di avanzamento accompagnano i primi istanti.
+All'apertura compare il logo ROOF con una barra di avanzamento. La schermata attende il primo fotogramma del video principale della home, così il sito si apre già in movimento, mai su uno schermo nero.
 
-- Il video della finestra iniziale (il logo ROOF in home) inizia a scaricarsi dalla prima riga della pagina.
-- Il loader si apre quando almeno **un terzo** dei video delle finestre è pronto a partire, mai prima di 1,1 secondi e **mai dopo 3 secondi**.
-- La barra avanza sempre in modo fluido, senza scatti né passi indietro.
+Se la rete è lenta o il video non risponde, dopo **8 secondi** il sito si apre comunque. All'uscita il logo si dissolve e la pagina entra con un'animazione di apertura.
 
-### 2. Il volo d'apertura
+### 2. Navigazione
 
-Dopo il loader la città si costruisce in 3D, le finestre del palazzo si accendono e la camera vola verso il palazzo ROOF fino a fermarsi davanti alla finestra della pagina aperta, che riempie tutto lo schermo. Il pulsante **Skip intro**, in basso a destra, accelera il volo.
+Il sito è una single-page application: ogni pagina ha un indirizzo proprio dopo il simbolo `#`, per esempio `#/works`, `#/about` o `#/project/salmo`. Le pagine si possono quindi condividere, aggiungere ai preferiti e navigare con i tasti avanti e indietro del browser.
 
-### 3. La home: un percorso dentro il palazzo
+L'header resta sempre disponibile. Su mobile il menu si apre con il pulsante **Menu +**.
 
-Scorrendo la home la camera si muove dentro e attorno al palazzo:
+### 3. Cambio pagina
 
-1. **Finestra del logo ROOF:** la schermata iniziale.
-2. **Ingresso nella stanza:** la finestra si apre, appare **We love what we do** e poi **The Studio**.
-3. **Lo schermo dei lavori:** un prisma a cinque facce ruota mostrando i 5 progetti selezionati, ciascuno con categoria, titolo, descrizione e pulsante **Explore project**.
-4. **Uscita sul lato del palazzo:** le card dei progetti scorrono in 3D.
-5. **Salita fino al tetto:** i servizi principali e, in fondo, l'insegna ROOF con l'antenna, il footer e **Take me back to the top**.
+Il cambio di pagina avviene senza loader:
 
-Dietro ogni blocco di testo un velo scuro leggero ne garantisce la leggibilità.
+- la pagina attuale si dissolve lentamente;
+- nel frattempo i video della prima schermata della pagina successiva iniziano già a scaricarsi, uno dopo l'altro e con il primo in precedenza;
+- la nuova pagina compare con i video pronti e già in riproduzione.
 
-### 4. Cambio pagina
+### 4. Animazioni allo scroll
 
-Cambiando pagina la camera esce dalla finestra attuale, percorre la facciata del palazzo ed entra nella finestra della nuova pagina. Lo stesso vale per ogni singolo progetto, ognuno con la propria finestra. Una scritta in basso indica la pagina in cui si sta entrando e il piano del palazzo.
-
-### 5. Refresh a metà pagina
-
-Se ricarichi la pagina mentre sei a metà, il sito ripete l'animazione d'apertura e poi scorre da solo fino al punto esatto in cui eri.
-
-### 6. Take me back to the top
-
-In fondo alla home, il pulsante riporta all'inizio con una risalita di circa 3,6 secondi. La camera scorre in modo continuo tra le sezioni, come se qualcuno stesse scorrendo il sito.
+Titoli, card e blocchi di testo entrano con un leggero movimento quando arrivano nello schermo. In alto una sottile barra gialla indica l'avanzamento della lettura. Su desktop le immagini delle card hanno un leggero effetto parallasse.
 
 ---
 
@@ -78,40 +97,55 @@ In fondo alla home, il pulsante riporta all'inizio con una risalita di circa 3,6
 
 | Pagina | Indirizzo | Contenuto |
 |---|---|---|
-| **Home** | `#/` | Il percorso dentro il palazzo descritto sopra |
-| **What we create** | `#/works` | Archivio dei 9 progetti con filtri per categoria |
+| **Home** | `#/` | Video identitario ROOF a tutto schermo, manifesto "We love what we do", vetrina dei 5 lavori selezionati, presentazione dello studio, "Beyond the screen" con le card dei progetti, servizi principali |
+| **What we create** | `#/works` | Archivio dei 9 progetti con filtri per categoria (Live visuals, 3D & animation, Interactive, XR & virtual) |
 | **Services** | `#/services` | Elenco dei servizi a fisarmonica, ognuno con descrizione, video e link al progetto collegato |
-| **About** | `#/about` | Presentazione dello studio e loghi di clienti e collaboratori |
-| **Let's talk** | `#/contacts` | Email, indirizzo con link alla mappa, descrizione e video |
-| **Progetto** | `#/project/<nome>` | Note di progetto, crediti, galleria di immagini, video aggiuntivi, link a YouTube, progetto successivo |
+| **About** | `#/about` | Presentazione dello studio con il video ROOF, manifesto su fondo giallo, fascia scorrevole e loghi di clienti e collaboratori |
+| **Let's talk** | `#/contacts` | Scheda con video, email, indirizzo con link alla mappa e descrizione dello studio |
+| **Progetto** | `#/project/<nome>` | Pagina dedicata a ogni lavoro |
+
+### Home: la vetrina dei lavori
+
+Scorrendo la home si entra in una sezione "fissata" allo schermo. Ogni porzione di scroll mostra uno dei 5 lavori selezionati: video a tutto schermo, categoria, titolo, breve descrizione e pulsante **Explore project**.
+
+La timeline in basso indica il lavoro corrente e l'avanzamento, e permette di saltare direttamente a un lavoro.
+
+### Pagina di un progetto
+
+Ogni progetto contiene:
+
+- copertina divisa in due: video a sinistra, nome, categoria e pulsante **← All projects** a destra;
+- note di progetto e crediti;
+- galleria di immagini;
+- eventuali video aggiuntivi;
+- link al video originale su YouTube, che si apre in una nuova scheda;
+- banda gialla con il collegamento al progetto successivo.
 
 ### Foto ingrandite
 
-Nella galleria di un progetto, una foto cliccata cresce dalla sua miniatura fino a una cornice arrotondata su fondo scuro, con il nome del progetto e il numero dell'immagine. Si chiude con il pulsante circolare, cliccando sul fondo o con `Esc`, e rientra nella miniatura senza scatti.
+Nella galleria di un progetto, cliccando su una foto:
 
-### Video su YouTube
-
-Il riquadro sotto i video di un progetto apre il video originale direttamente su YouTube, in una nuova scheda.
+- la foto cresce dalla sua miniatura fino a una cornice arrotondata al centro dello schermo, su fondo scuro;
+- in basso compaiono il nome del progetto e il numero dell'immagine (es. `02 / 04`);
+- mentre è aperta viene caricata una versione più nitida;
+- si chiude con il pulsante rotondo, cliccando sul fondo o premendo `Esc`, e rientra nella miniatura senza scatti.
 
 ---
 
-## Caricamento dei video
+## Caricamento di video e immagini
 
-Un unico gestore decide quali video scaricare e in che ordine, così la banda va sempre a ciò che serve in quel momento:
+Il sito è ottimizzato per mostrare i contenuti il prima possibile, soprattutto su connessioni mobili.
 
-1. **Loader e volo d'apertura:** solo i video del palazzo. Per primo e da solo quello della finestra di partenza (ROOF in home), poi gli altri a partire dai più vicini.
-2. **Quando circa due terzi del palazzo sono pronti:** si aggiungono i video della home.
-3. **Appena si entra in una pagina:** i download non finiti del palazzo vengono messi in pausa. Prima si scarica, da solo, il video della finestra della pagina, poi tutti i video della pagina vengono resi *pronti a partire*, nell'ordine in cui compaiono.
-4. **Poi:** riprende il palazzo e, alla fine, gli altri video del sito.
+**Immagini**
+- Le foto vengono servite ridimensionate e in formato WebP tramite il CDN di WordPress (`i0.wp.com`), con un peso pari a circa la metà dell'originale.
+- Se il CDN non risponde, viene caricata automaticamente l'immagine originale.
+- Le immagini compaiono con una dissolvenza solo quando sono state scaricate per intero, così non si caricano mai "a pezzi" dall'alto verso il basso.
 
-Ad ogni cambio pagina si riparte dal punto 3.
-
-**Accorgimenti aggiuntivi**
-- Un video che si sta guardando non viene mai interrotto.
-- Due video che sono lo stesso file (lo sfondo e la copia sotto il testo in Let's talk) non vengono mai scaricati in parallelo: la copia arriva dalla cache.
-- I telefoni non scaricano i video nascosti. Mentre un video si prepara e la sua finestra non è ancora inquadrata, viene tenuto in un punto minuscolo e invisibile; appena la finestra entra in vista torna al suo posto, già in riproduzione.
-- Le immagini di anteprima sono ritagliate e mai deformate, e i video compaiono solo quando sono davvero in movimento.
-- Il video "Solana Breakpoint" salta il primo istante, in cui metà schermo è nera.
+**Video**
+- I video fuori schermo iniziano a scaricarsi poco prima di entrare in vista, così sono già in movimento quando compaiono.
+- Un video resta invisibile, lasciando vedere l'immagine di anteprima o lo sfondo, finché non è davvero in riproduzione: nessun fotogramma nero o bloccato.
+- Nella pagina About il video ROOF ha la precedenza: il secondo video inizia a caricarsi solo quando il ROOF è pronto a partire.
+- I controlli nativi del browser (play, pausa, volume) non vengono mai mostrati.
 
 ---
 
@@ -123,36 +157,40 @@ La cartella `media/m` contiene copie leggere dei **21 video** del sito:
 
 | Tipo di video | Risoluzione |
 |---|---|
-| Video brevi in loop (finestre, lavori, servizi) | 720p |
+| Video brevi in loop (home, lavori, servizi, About) | 720p |
 | Video lunghi dei progetti | 540p |
 
-In tutto pesano **circa 57 MB invece di 266 MB**, circa 4,7 volte meno da scaricare.
+In tutto pesano **circa 57 MB invece di 266 MB**: circa 4,7 volte meno da scaricare.
 
-Su telefoni e schermi fino a **900 px** il sito usa automaticamente queste copie, comprese le finestre del palazzo e il download anticipato del video ROOF. Su desktop restano i video originali in Full HD dal sito di ROOF.
+Su telefoni e schermi fino a **900 px** il sito usa automaticamente queste copie. Su desktop restano i video originali in Full HD dal sito di ROOF. La scelta è automatica e non richiede nulla all'utente.
 
-### Layout dedicato
+### Layout
 
-- **Finestra iniziale:** riempie lo schermo come su desktop. Durante l'avvicinamento il video ROOF si assesta largo il doppio dello schermo, con il logo intero e un riflesso sfumato sopra e sotto, già fermo quando la camera atterra.
-- **Schermo dei lavori:** "Selected work", titolo e descrizione più in basso, con **Explore project** sulla riga della descrizione.
-- **Let's talk:** il video della finestra fa da sfondo alla schermata del titolo, e lo stesso video è ripetuto sotto i paragrafi.
-- **Footer:** "Let's make something move." resta su una riga con la freccia, e **Take me back to the top** sta sulla riga dei social.
-- **Hover:** nessun effetto hover su touch, perché gli hover valgono solo con il mouse.
+Su mobile:
+- il video principale occupa tutto lo schermo;
+- la vetrina dei lavori riempie l'intera altezza;
+- didascalie e pulsanti sono ridisposti per lo schermo verticale;
+- l'indirizzo e il link alla mappa restano sulla stessa riga.
 
 ---
 
 ## Lingua italiano / inglese
 
-Il selettore **IT / EN** è nell'header, anche su mobile. La scelta viene ricordata dal browser e la traduzione funziona anche aprendo `index.html` dal disco.
+Il selettore **IT / EN** è sempre disponibile nell'header, anche su mobile.
+
+- La lingua iniziale è l'inglese; la scelta viene ricordata dal browser.
+- La traduzione è locale e funziona anche aprendo `index.html` dal disco, senza servizi esterni.
+- Testi, servizi, navigazione e descrizioni sono tradotti.
+- Nomi di brand, progetti, tour, crediti professionali e termini tecnici come *live visuals*, *Notch*, *NFT*, *AI* e *game development* restano in inglese.
 
 ---
 
-## Accessibilità e compatibilità
+## Accessibilità
 
-- **Riduci movimento:** con l'opzione di sistema attiva, l'intro e i voli sono disattivati.
-- **Senza WebGL:** se il browser non supporta il 3D, il sito mostra le pagine con il video come sfondo.
-- **Prestazioni:** il sito riproduce solo i video delle finestre più visibili e abbassa da solo la risoluzione 3D se il dispositivo rallenta.
-- Link "Skip to content", focus visibile e testi alternativi.
-- Le foto ingrandite si chiudono con `Esc`.
+- **Riduci movimento:** se nel sistema è attiva l'opzione "riduci animazioni", le animazioni vengono disattivate o semplificate e i contenuti restano accessibili.
+- Link "Skip to content" per passare direttamente al contenuto con la tastiera.
+- Testi alternativi per immagini e controlli, stati dei pulsanti (`aria-pressed`, `aria-expanded`) e focus visibile.
+- Le foto ingrandite si chiudono anche con il tasto `Esc`.
 
 ---
 
@@ -160,25 +198,21 @@ Il selettore **IT / EN** è nell'header, anche su mobile. La scelta viene ricord
 
 ```
 .
-├── index.html        Struttura della pagina, header, loader, visualizzatore foto, avvio anticipato del video ROOF
-├── style.css         Stili, layout responsive e animazioni delle pagine
-├── world.js          Città, palazzo, finestre, stanza, tetto e camera (Three.js)
-├── app.js            Pagine, navigazione, scroll, transizioni e gestione del caricamento dei video
-├── data.js           Contenuti del sito (testi, immagini, video) e logo per l'insegna
-├── translations.js   Testi italiani
-├── assets/           Logo ROOF (giallo e nero)
-├── vendor/           GSAP, Three.js, Lenis
+├── index.html           Struttura della pagina, header, footer, schermata di caricamento
+├── style.css            Stili di base (proposta 1), layout responsive e animazioni
+├── mix.css              Componenti in stile Cinema e regole della proposta Mix (caricato dopo style.css)
+├── app.js               Contenuti del sito, pagine, navigazione, video, foto ingrandite, cambio pagina
+├── loader.js            Schermata di caricamento iniziale
+├── scroll-effects.js    Animazioni allo scroll e barra di lettura
+├── accordion.js         Animazione dei servizi a fisarmonica
+├── language.js          Selettore e applicazione della lingua
+├── translations.js      Dizionario delle traduzioni italiane
+├── translations-extra.js  Traduzioni italiane dei testi in stile Cinema
+├── assets/              Logo ROOF (giallo e nero)
+├── vendor/              Librerie GSAP e ScrollTrigger
 └── media/
-    └── m/            Versioni leggere dei video per mobile
+    └── m/               Versioni leggere dei video per mobile
 ```
-
----
-
-## Note tecniche
-
-- **I video non sono texture WebGL:** il server di origine non invia le intestazioni CORS necessarie. Sono veri elementi `<video>` posizionati in 3D sotto il canvas e visti attraverso dei "fori" nelle finestre del palazzo.
-- La posizione dei video viene sincronizzata con la camera Three.js a ogni fotogramma.
-- Lo scroll è gestito da Lenis, che guida sia il percorso della camera sia le animazioni dei contenuti.
 
 ---
 
@@ -186,24 +220,10 @@ Il selettore **IT / EN** è nell'header, anche su mobile. La scelta viene ricord
 
 | Libreria | Versione | Utilizzo |
 |---|---|---|
-| [Three.js](https://threejs.org/) | r160 | Città, palazzo e camera in 3D |
-| [GSAP](https://gsap.com/docs/v3/) | 3.15 | Volo d'apertura, transizioni, foto ingrandite |
-| [Lenis](https://github.com/darkroomengineering/lenis) | 1.1.14 | Scroll fluido |
+| [GSAP](https://gsap.com/docs/v3/) | 3.15.0 | Animazioni del caricamento, delle transizioni e delle foto ingrandite |
+| [ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) | 3.15.0 | Animazioni allo scroll, parallasse e barra di lettura |
 
-Tutte le librerie sono incluse nella cartella `vendor`.
-
----
-
-## Cronologia delle versioni
-
-| Versione | Principali novità |
-|---|---|
-| **v3** | Link diretti a YouTube, home senza elementi di disturbo, velo scuro dietro i testi, nuove foto ingrandite, layout mobile rivisto |
-| **v4** | Video ROOF con logo intero e riflesso su mobile, tetto ben visibile, ritorno al punto dopo il refresh |
-| **v4.1 – v4.6** | Ingresso diretto nella finestra, video già alla misura finale all'atterraggio, puntatore sotto il mouse, nessuno spostamento dopo l'animazione |
-| **v5 – v5.4** | Nessun hover su touch, risalita più fluida, footer senza tinte gialle, video delle finestre caricati da subito, intro più lunga di 1 secondo |
-| **v6 – v6.4** | Gestore unico del caricamento dei video con priorità, loader al massimo 3 secondi, video su iPhone caricati anche fuori inquadratura, immagini dei progetti sempre visibili, Services subito scorrevole |
-| **v7** | Video leggeri su mobile (`media/m`), originali in Full HD su desktop |
+Entrambe sono incluse nella cartella `vendor`: il sito funziona senza collegarsi a CDN esterni per gli script. Licenza: [GSAP Standard License](https://gsap.com/standard-license/).
 
 ---
 
