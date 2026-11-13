@@ -433,3 +433,6 @@ nav{overscroll-behavior:contain}
  .scroll-thumb{display:block;position:fixed;top:0;right:3px;width:4px;height:40px;border-radius:4px;background:var(--lime);box-shadow:0 0 0 1px #11121033,0 0 10px #f7eb6240;z-index:1001;pointer-events:none;opacity:0;transition:opacity .45s ease;will-change:transform,opacity}
  .scroll-thumb.is-on{opacity:.9;transition-duration:.15s}
 }
+/* Desktop too: no browser scrollbar (the yellow reading line at the top shows the progress) */
+html{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
