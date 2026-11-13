@@ -217,3 +217,13 @@ function warmFirstFilm(){
 (()=>{if(location.hash.replace(/^#\/?/,'').split('/')[0]!=='')return;const b=main.querySelector('.brand-video');let done=false;
  const go=()=>{if(done)return;done=true;warmFirstFilm()};
  if(!b||b.readyState>=3)go();else{b.addEventListener('canplay',go,{once:true});setTimeout(go,1500)}})();
+/* Main clips must start by themselves, never sit paused with a play symbol.
+   - the page behind the loader stays "visible" (the loader covers it), so phones are allowed to autoplay it
+   - as soon as the loader opens, and on every return to the tab, visible paused clips are started again
+   - if the phone still refuses (e.g. low-power mode), they start on the first touch, tap or scroll gesture */
+(()=>{const wake=()=>document.querySelectorAll('main video').forEach(v=>{if(!v.paused||reduce)return;const r=v.getBoundingClientRect(),d=v.closest('details'),f=v.closest('.film');if(r.bottom>0&&r.top<innerHeight&&r.width>0&&(!d||d.open)&&(!f||f.classList.contains('active'))&&(!v.dataset.wait||v.dataset.go))v.play().catch(()=>{})});
+ new MutationObserver(()=>{if(!document.body.classList.contains('is-loading'))setTimeout(wake,60)}).observe(document.body,{attributes:true,attributeFilter:['class']});
+ addEventListener('pageshow',wake);document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
+ const gesture=()=>{wake();const b=main.querySelector('.brand-video');if(!b||!b.paused)['touchend','click','keydown'].forEach(t=>removeEventListener(t,gesture,true))};
+ ['touchend','click','keydown'].forEach(t=>addEventListener(t,gesture,{capture:true,passive:true}));
+ setTimeout(wake,300);})();

@@ -1,6 +1,8 @@
 (() => {
  if(!window.gsap || !window.ScrollTrigger)return;
  gsap.registerPlugin(ScrollTrigger);
+ // phones: the address bar showing/hiding must not trigger a full recalculation (it made scrolling stutter)
+ ScrollTrigger.config({ignoreMobileResize:true});
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
  let context;

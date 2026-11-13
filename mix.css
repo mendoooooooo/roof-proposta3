@@ -442,3 +442,13 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 .contact-email .arrow-icon{flex:none}
 @media(max-width:760px){.contact-email{font-size:min(22px,5vw)}}
 @media(orientation:landscape) and (max-height:520px){.contact-email{font-size:min(20px,2.3vw)}}
+
+/* ---------- v16 ---------- */
+/* behind the loader the page stays rendered (the loader covers it): phones only autoplay videos that are visible */
+body.is-loading>header,body.is-loading>main,body.is-loading>footer{visibility:visible}
+/* the ROOF clip stays hidden until it really moves: no native play symbol on a paused frame */
+.brand-video{transition:opacity .5s ease}
+.brand-video:not(.is-playing){opacity:0}
+@media(prefers-reduced-motion:reduce){.brand-video:not(.is-playing){opacity:1}}
+/* phones: the showcase keeps a fixed height while the address bar slides (100dvh made the page jump) */
+@media(max-width:760px){.stage{height:100vh;height:100svh}}
