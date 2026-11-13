@@ -193,3 +193,11 @@ function landFlight(){
  const sideways=()=>{if(phoneLandscape.matches&&nav.classList.contains('open')){nav.classList.remove('open');btn.setAttribute('aria-expanded','false')}};
  phoneLandscape.addEventListener?phoneLandscape.addEventListener('change',sideways):phoneLandscape.addListener(sideways);
 })();
+/* Phones: a yellow, rounded scroll indicator on the right edge in place of the browser's one; it shows while scrolling and fades away when you stop, like the native one. */
+(()=>{const mq=matchMedia('(max-width:760px), (pointer:coarse) and (max-height:520px)');const el=document.createElement('div');el.className='scroll-thumb';el.setAttribute('aria-hidden','true');document.body.append(el);
+ let raf=0,idle=0;const pad=6;
+ const draw=()=>{raf=0;if(!mq.matches)return;const doc=document.documentElement,max=doc.scrollHeight-innerHeight;if(max<40||document.body.classList.contains('menu-open')){el.classList.remove('is-on');return}
+  const track=innerHeight-pad*2,h=Math.max(36,track*innerHeight/doc.scrollHeight),y=pad+(track-h)*Math.min(1,Math.max(0,scrollY/max));
+  el.style.height=h+'px';el.style.transform=`translateY(${y}px)`};
+ const show=()=>{if(!mq.matches)return;el.classList.add('is-on');clearTimeout(idle);idle=setTimeout(()=>el.classList.remove('is-on'),1100);if(!raf)raf=requestAnimationFrame(draw)};
+ addEventListener('scroll',show,{passive:true});addEventListener('resize',()=>{if(!raf)raf=requestAnimationFrame(draw)});draw()})();

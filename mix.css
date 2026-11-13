@@ -423,3 +423,13 @@ nav{overscroll-behavior:contain}
  .studio-opening p{font-size:12.5px}
  .story-manifesto>p{font-size:22px}
 }
+
+/* ---------- v12: phones, scroll indicator ---------- */
+.scroll-thumb{display:none}
+@media(max-width:760px),(pointer:coarse) and (max-height:520px){
+ .reading-progress{display:none!important}
+ html{scrollbar-width:none}
+ html::-webkit-scrollbar{display:none;width:0;height:0}
+ .scroll-thumb{display:block;position:fixed;top:0;right:3px;width:4px;height:40px;border-radius:4px;background:var(--lime);box-shadow:0 0 0 1px #11121033,0 0 10px #f7eb6240;z-index:1001;pointer-events:none;opacity:0;transition:opacity .45s ease;will-change:transform,opacity}
+ .scroll-thumb.is-on{opacity:.9;transition-duration:.15s}
+}
