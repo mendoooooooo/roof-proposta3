@@ -201,3 +201,19 @@ function landFlight(){
   el.style.height=h+'px';el.style.transform=`translateY(${y}px)`};
  const show=()=>{if(!mq.matches)return;el.classList.add('is-on');clearTimeout(idle);idle=setTimeout(()=>el.classList.remove('is-on'),1100);if(!raf)raf=requestAnimationFrame(draw)};
  addEventListener('scroll',show,{passive:true});addEventListener('resize',()=>{if(!raf)raf=requestAnimationFrame(draw)});draw()})();
+/* Home, first visit: the first clip of the "selected work" showcase is buffered right after the ROOF clip, in a tiny
+   on-screen holder (phones only buffer videos that are visible), then swapped in already playing, so it moves as soon as it appears. */
+function warmFirstFilm(){
+ const cur=main.querySelector('.film video');if(!cur||cur.readyState>=3)return;
+ const src=cur.getAttribute('src'),w=document.createElement('video');
+ ['muted','playsinline','webkit-playsinline','loop','disablepictureinpicture','disableremoteplayback'].forEach(a=>w.setAttribute(a,''));
+ w.muted=true;w.loop=true;w.playsInline=true;w.preload='auto';w.src=src;preHold.append(w);w.play().catch(()=>{});
+ const swap=()=>{const now=main.querySelector('.film video');
+  if(!now||now.getAttribute('src')!==src||now.readyState>=3){w.remove();return}
+  const playing=!w.paused;[...now.attributes].forEach(a=>{if(a.name!=='src')w.setAttribute(a.name,a.value)});w.classList.toggle('is-playing',playing);
+  now.replaceWith(w);if(!w.closest('.film')?.classList.contains('active'))w.pause();else w.play().catch(()=>{})};
+ w.addEventListener('canplay',swap,{once:true});setTimeout(()=>{if(w.isConnected&&w.parentElement===preHold&&w.readyState>=2)swap()},6000);
+}
+(()=>{if(location.hash.replace(/^#\/?/,'').split('/')[0]!=='')return;const b=main.querySelector('.brand-video');let done=false;
+ const go=()=>{if(done)return;done=true;warmFirstFilm()};
+ if(!b||b.readyState>=3)go();else{b.addEventListener('canplay',go,{once:true});setTimeout(go,1500)}})();
