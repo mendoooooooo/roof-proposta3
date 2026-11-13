@@ -408,3 +408,18 @@ nav{overscroll-behavior:contain}
  .cover-foot p{font-size:12px}
 }
 @media(orientation:landscape) and (max-height:520px) and (min-width:761px){.project-cover{min-height:calc(100svh - 96px)}}
+
+/* ---------- v11: phone sideways ---------- */
+@media(orientation:landscape) and (max-height:520px){
+ /* Services: text and clip side by side, the clip always whole (16:9, never cropped) */
+ .service-body.has-media{grid-template-columns:1fr 1.1fr;gap:24px;align-items:center}
+ .service-video,video.wide-video{max-height:none;aspect-ratio:16/9;height:auto}
+ /* project header: "All projects" sits close to the title block */
+ .project-cover-caption{justify-content:center}
+ .project-cover-caption .back{margin-bottom:10px}
+ .project-cover-caption .eyebrow{margin-top:0}
+ /* body text a step smaller again */
+ .service-body p,.body-copy,.studio-story>div>p,.project-narrative>p,.contact-scene .contact-description{font-size:12.5px;line-height:1.65}
+ .studio-opening p{font-size:12.5px}
+ .story-manifesto>p{font-size:22px}
+}
