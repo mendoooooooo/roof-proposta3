@@ -17,7 +17,7 @@
     gsap.fromTo(el,{y:45,opacity:0},{y:0,opacity:1,duration:.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 92%',once:true}});
    });
    document.querySelectorAll('.card,.archive-card,.project-gallery>button').forEach(el=>{
-    gsap.fromTo(el,{y:55,opacity:0,clipPath:'inset(12% 0 0 0)'},{y:0,opacity:1,clipPath:'inset(0% 0 0 0)',clearProps:'clipPath',duration:1.05,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 94%',once:true}});
+    fine?gsap.fromTo(el,{y:55,opacity:0,clipPath:'inset(12% 0 0 0)'},{y:0,opacity:1,clipPath:'inset(0% 0 0 0)',clearProps:'clipPath',duration:1.05,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 94%',once:true}}):gsap.fromTo(el,{y:30,opacity:0},{y:0,opacity:1,clearProps:'transform,opacity',duration:.7,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 96%',once:true}}); // phones: no clip-path on cards with video, it made scrolling stutter
    });
    document.querySelectorAll('.services-list>details').forEach((el,i)=>{
     gsap.fromTo(el,{x:-25,opacity:0},{x:0,opacity:1,duration:.6,delay:(i%3)*.07,ease:'power2.out',scrollTrigger:{trigger:el,start:'top 94%',once:true}});

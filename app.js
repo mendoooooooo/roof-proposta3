@@ -25,7 +25,7 @@ function hoverVideos(){
  nearObserver=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
   const detail=v.closest('details');
   if(isIntersecting&&(!detail||detail.open)&&v.preload!=='auto'&&(!v.dataset.wait||v.dataset.go)){v.preload='auto';nearObserver.unobserve(v)}
- }),{rootMargin:'1200px 0px 1400px 0px'});
+ }),{rootMargin:SMALL_SCREEN?'700px 0px 900px 0px':'1200px 0px 1400px 0px'});
  document.querySelectorAll('video:not(.film video)').forEach(v=>nearObserver.observe(v));
  observer=new IntersectionObserver(entries=>entries.forEach(({target:v,isIntersecting})=>{
   const detail=v.closest('details');

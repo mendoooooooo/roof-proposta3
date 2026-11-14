@@ -452,3 +452,12 @@ body.is-loading>header,body.is-loading>main,body.is-loading>footer{visibility:vi
 @media(prefers-reduced-motion:reduce){.brand-video:not(.is-playing){opacity:1}}
 /* phones: the showcase keeps a fixed height while the address bar slides (100dvh made the page jump) */
 @media(max-width:760px){.stage{height:100vh;height:100svh}}
+
+/* ---------- v17: smoother scrolling on phones ---------- */
+/* fewer heavy layers: no big blurred shadows or permanent will-change on cards that hold a playing video */
+@media(max-width:760px),(pointer:coarse){
+ .card-media,.archive-media{box-shadow:none;will-change:auto;transition:none}
+ .card-media:after,.archive-media:after{display:none}
+ .archive-media img,.archive-media video,.card-media img,.card-media video{transition:opacity .4s ease}
+ .card-media:has(video.is-playing) img,.archive-media:has(video.is-playing) img{transition:none}
+}
