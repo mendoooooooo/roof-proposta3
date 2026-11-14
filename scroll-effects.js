@@ -33,9 +33,13 @@
  };
  // Rebuild effects when the single-page navigation replaces its content.
  new MutationObserver(()=>requestAnimationFrame(install)).observe(document.querySelector('main'),{childList:true});
- document.addEventListener('toggle',()=>ScrollTrigger.refresh(),true);
- window.addEventListener('load',()=>ScrollTrigger.refresh());
- new MutationObserver(()=>{if(!document.body.classList.contains('is-loading'))ScrollTrigger.refresh()}).observe(document.body,{attributes:true,attributeFilter:['class']});
- document.addEventListener('load',e=>{if(e.target.tagName==='IMG')ScrollTrigger.refresh()},true);
+ // A refresh while the finger-flick is still scrolling stops the scroll on phones ("the page locks"):
+ // recalculations wait until scrolling has been still for a moment, and photos in fixed-size frames need none.
+ let lastScroll=0,rt=0;addEventListener('scroll',()=>{lastScroll=performance.now()},{passive:true});
+ const softRefresh=()=>{clearTimeout(rt);rt=setTimeout(function wait(){if(performance.now()-lastScroll<450){rt=setTimeout(wait,250);return}ScrollTrigger.refresh()},250)};
+ document.addEventListener('toggle',softRefresh,true);
+ window.addEventListener('load',softRefresh);
+ let wasLoading=true;new MutationObserver(()=>{const l=document.body.classList.contains('is-loading');if(wasLoading&&!l)softRefresh();wasLoading=l}).observe(document.body,{attributes:true,attributeFilter:['class']});
+ document.addEventListener('load',e=>{const t=e.target;if(t.tagName==='IMG'&&!t.closest('.card-media,.archive-media,.clients-crop'))softRefresh()},true);
  install();
 })();

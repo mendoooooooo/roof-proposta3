@@ -227,3 +227,9 @@ function warmFirstFilm(){
  const gesture=()=>{wake();const b=main.querySelector('.brand-video');if(!b||!b.paused)['touchend','click','keydown'].forEach(t=>removeEventListener(t,gesture,true))};
  ['touchend','click','keydown'].forEach(t=>addEventListener(t,gesture,{capture:true,passive:true}));
  setTimeout(wake,300);})();
+/* Extra start attempts for the ROOF clip: muted is set as a property too (some browsers only trust that), and play()
+   is retried as soon as the clip has data, so it never waits for a tap when the phone allows autoplay. */
+(()=>{const arm=()=>{const b=main.querySelector('.brand-video');if(!b||b.dataset.armed||reduce)return;b.dataset.armed='1';b.muted=true;b.defaultMuted=true;b.playsInline=true;
+ const go=()=>{if(b.paused&&b.isConnected)b.play().catch(()=>{})};['loadedmetadata','loadeddata','canplay','canplaythrough'].forEach(t=>b.addEventListener(t,go));go();
+ let n=0;const iv=setInterval(()=>{if(!b.isConnected||!b.paused||++n>20){clearInterval(iv);return}go()},500)};
+ arm();new MutationObserver(arm).observe(main,{childList:true})})();

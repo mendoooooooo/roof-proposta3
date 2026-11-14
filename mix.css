@@ -448,7 +448,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
 body.is-loading>header,body.is-loading>main,body.is-loading>footer{visibility:visible}
 /* the ROOF clip stays hidden until it really moves: no native play symbol on a paused frame */
 .brand-video{transition:opacity .5s ease}
-.brand-video:not(.is-playing){opacity:0}
+.brand-video:not(.is-playing){opacity:.01} /* not 0: iPhones refuse to autoplay a fully transparent video */
 @media(prefers-reduced-motion:reduce){.brand-video:not(.is-playing){opacity:1}}
 /* phones: the showcase keeps a fixed height while the address bar slides (100dvh made the page jump) */
 @media(max-width:760px){.stage{height:100vh;height:100svh}}
